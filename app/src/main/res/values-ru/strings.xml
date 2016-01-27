@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="action_settings">Настройки</string>
+    <string name="action_open">Загрузка слов из файла</string>
+    <string name="action_words">Выбор слов для изучения</string>
+    <string name="empty_folder">Пустая папка</string>
+    <string name="press_to_exit">Нажмите еще раз чтобы выйти</string>
+    <string name="title_activity_word_setting">Выбор слов</string>
+    <string name="can_t_read">нет доступа</string>
+    <string name="no_words">Слова не загружены</string>
+    <string name="alert_delete">Выбранные пункты будут удалены</string>
+    <string name="nothing_selected">Ничего не выбрано для изучения</string>
+    <string name="input_hint">Введите имя файла</string>
+    <string name="q_overwrite">Файл существует, переписать?</string>
+    <string name="preview_summary">Режим просмотра</string>
+    <string name="show_learned">Показывать выученные слова</string>
+    <string name="other_symbol">другой символ</string>
+    <string name="sep_head">Разделитель полей в строках входного файла</string>
+    <string name="use_buttons">использовать кнопки для листания карт</string>
+    <string name="tabs">табуляция</string>
+    <string name="error_reading">неверный разделитель полей или формат файла</string>
+    <string name="words_no">%d слов прочитано</string>
+    <string name="is_reading">Файл еще читается</string>
+    <string name="first_word">Это первое слово!</string>
+    <string name="last_word">Это последнее слово!</string>
+    <string name="all_words">Все слова выучены</string>
+    <string name="sel_words">%d слов выбрано для изучения</string>
+    <string name="del_everything">Все слова удалены</string>
+    <string name="mark_menu">выделить</string>
+    <string name="menu_cancel">отменить</string>
+    <string-array name="tts_messages">
+        <item>Язык не поддерживается.</item>
+        <item>Языковые данные отсутствуют.</item>
+        <item>Язык поддерживается, но не для заданной страны и варианта.</item>
+        <item>Язык поддерживается для заданной страны, но не для заданного варианта.</item>
+        <item>Язык полностью поддерживается.</item>
+    </string-array>
+
+</resources>

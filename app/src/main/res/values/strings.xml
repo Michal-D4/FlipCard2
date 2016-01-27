@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name" translatable="false">FlipCard</string>
+    <string name="action_settings">Settings</string>
+    <string name="action_open">Load words from file</string>
+    <string name="action_words">Choose words to study</string>
+    <string name="title_activity_pick_file" translatable="false">PickFile</string>
+    <string name="empty_folder">Empty folder</string>
+    <string name="press_to_exit">press again to exit</string>
+    <string name="title_activity_word_setting">Choice of words</string>
+    <string name="can_t_read">can\'t read</string>
+    <string name="words_no">%d words are read</string>
+    <string name="no_words">No word was loaded</string>
+    <string name="alert_delete">Selected items will be deleted</string>
+    <string name="nothing_selected">Nothing is chosen to study</string>
+    <string name="input_hint">Enter file name</string>
+    <string name="q_overwrite">File exist, overwrite?</string>
+    <string name="show_learned">show learned words</string>
+    <string name="preview_summary">preview mode</string>
+    <string name="tabs">tabs</string>
+    <string name="other_symbol">other symbol</string>
+    <string name="sep_head">Separator of fields in the input file:</string>
+    <string name="use_buttons">use buttons to card scrolling</string>
+    <string name="error_reading">incorrect delimiter or file format</string>
+    <string name="is_reading">File is still reading</string>
+    <string name="first_word">It is first word!</string>
+    <string name="last_word">It is last word!</string>
+    <string name="all_words">All words are learned</string>
+    <string name="sel_words">%d words selected for studying</string>
+    <string name="del_everything">All words are deleted</string>
+    <string name="mark_menu">mark</string>
+    <string name="menu_cancel">cancel</string>
+    <string name="comment_sign" translatable="false">##</string>
+    <string-array name="tts_messages">
+        <item>Language is not supported.</item>
+        <item>Language data is missing.</item>
+        <item>Language is available for the language by the locale, but not the country and variant.</item>
+        <item>Language is available for the language and country specified by the locale, but not the variant.</item>
+        <item>Language is available exactly as specified by the locale.</item>
+    </string-array>
+
+</resources>
