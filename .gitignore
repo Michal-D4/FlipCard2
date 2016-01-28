@@ -1,7 +1,4 @@
-*gradle*
-*.pro
 *.apk
-*.iml
 local.properties
 .idea/
 /.idea/libraries
