@@ -85,6 +85,7 @@ public class FlipCard extends Activity implements DataExchange {
     private boolean isTTSavailable = true;
     private int TTSmessageNo;
     private boolean isReadingNow = false;
+    static private final String IS_SETTING_NOW = "IS_SETTING_NOW";
 
     static private final int FILE_ERROR_READING = -1;
     static private final int FILE_ERROR_OPENING = -2;
@@ -118,12 +119,10 @@ public class FlipCard extends Activity implements DataExchange {
     protected void onResume() {
         super.onResume();
         Log.i(TAG_0, "onResume");
-        if (menu != null) {
-            Log.i(TAG_0, "(menu != null) =" + (menu != null) +
-                    " (detector != null) =" + (detector != null));
-            GestureDetector.SimpleOnGestureListener FGL = new FlipGestureDetector();
-            detector = new GestureDetector(this, FGL);
-        }
+        Log.i(TAG_0, "(menu != null) =" + (menu != null) +
+                " (detector != null) =" + (detector != null));
+        GestureDetector.SimpleOnGestureListener FGL = new FlipGestureDetector();
+        detector = new GestureDetector(this, FGL);
     }
 
     @Override
@@ -150,8 +149,11 @@ public class FlipCard extends Activity implements DataExchange {
 
         currWord = savedInstanceState.getInt(CURR_WORD);
         flipsCounter = savedInstanceState.getInt(FLIPS_COUNTER);
+        isSettingNow = savedInstanceState.getBoolean(IS_SETTING_NOW);
         wordsNumber = savedInstanceState.getSparseParcelableArray(WORD_NUMBER);
 
+        if (isSettingNow) return;
+        if (Words.size() == 0) return;
         dictEntry tmp = Words.get(currWord);
         if (myPersist.isPreview()) {
             preview.setText(tmp.getRu());
@@ -165,15 +167,18 @@ public class FlipCard extends Activity implements DataExchange {
                 tvTranscript.setText(tmp.getTranscript());
             }
         }
+        /*
         int newId = tmp.getFile_id();
         wnItem wi = wordsNumber.get(newId);
         counts.setText(wi.toString());
+        */
     }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         outState.putInt(CURR_WORD, currWord);
         outState.putInt(FLIPS_COUNTER, flipsCounter);
+        outState.putBoolean(IS_SETTING_NOW, isSettingNow);
 
         outState.putSparseParcelableArray(WORD_NUMBER, wordsNumber);
 
@@ -639,7 +644,7 @@ public class FlipCard extends Activity implements DataExchange {
 
     private void showMessage() {
         String[] messages = getResources().getStringArray(R.array.tts_messages);
-        Toast.makeText(this, messages[TTSmessageNo+2],Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, messages[TTSmessageNo + 2], Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -1258,20 +1263,12 @@ public class FlipCard extends Activity implements DataExchange {
         private static final int TAP_NEXT = 1;
         private static final int TAP_PREV_FLIP = 2;
         private final int halfScrWidth;
-        private final int TOP_OF_TAP_ZONE;
-        private final int BOTTOM_OF_TAP_ZONE;
+        private int midY;
 
         public FlipGestureDetector() {
             int[] loc = new int[2];
             main.getLocationOnScreen(loc);
             halfScrWidth = main.getWidth() / 2;
-            int h = main.getHeight();
-            TOP_OF_TAP_ZONE = loc[1];
-            BOTTOM_OF_TAP_ZONE = TOP_OF_TAP_ZONE + h;
-            Log.i(TAG_0, "loc[1]=" + loc[1] + " height=" + h +
-                    " TOP_OF_TAP_ZONE=" + TOP_OF_TAP_ZONE +
-                    " BOTTOM_OF_TAP_ZONE=" + BOTTOM_OF_TAP_ZONE +
-                    " halfScrWidth=" + halfScrWidth);
         }
 
         @Override
@@ -1294,9 +1291,18 @@ public class FlipCard extends Activity implements DataExchange {
         }
 
         private boolean isWorkingZone(int Y) {
-            int TOP_TRANSCRIPTION_FIELD;
-            int BOTTOM_TRANSCRIPTION_FIELD;
             Log.i(TAG_0, "isWorkingZone Y=" + Y);
+            int TOP_OF_TAP_ZONE;
+            int BOTTOM_OF_TAP_ZONE;
+            int[] loc = new int[2];
+            main.getLocationOnScreen(loc);
+            int h = main.getHeight();
+            TOP_OF_TAP_ZONE = loc[1];
+            BOTTOM_OF_TAP_ZONE = TOP_OF_TAP_ZONE + h;
+            Log.i(TAG_0, "loc[1]=" + loc[1] + " height=" + h +
+                    " TOP_OF_TAP_ZONE=" + TOP_OF_TAP_ZONE +
+                    " BOTTOM_OF_TAP_ZONE=" + BOTTOM_OF_TAP_ZONE +
+                    " halfScrWidth=" + halfScrWidth);
 
             if (tvTranscript.getVisibility() == View.VISIBLE &&
                     !("".equals(tvTranscript.getText().toString()))) {
@@ -1304,7 +1310,10 @@ public class FlipCard extends Activity implements DataExchange {
 
                 int[] locS = new int[2];
                 tvTranscript.getLocationOnScreen(locS);
+                midY = (TOP_OF_TAP_ZONE + BOTTOM_OF_TAP_ZONE) / 2;
 
+                int TOP_TRANSCRIPTION_FIELD;
+                int BOTTOM_TRANSCRIPTION_FIELD;
                 TOP_TRANSCRIPTION_FIELD = locS[1];
                 BOTTOM_TRANSCRIPTION_FIELD = TOP_TRANSCRIPTION_FIELD + viewHeight;
                 Log.i(TAG_0, "TOP_TRANSCRIPTION_FIELD=" + TOP_TRANSCRIPTION_FIELD +
@@ -1326,9 +1335,9 @@ public class FlipCard extends Activity implements DataExchange {
 
         private int tapZone(MotionEvent e) {
             int rez = 0;
+
             int Y = (int) e.getY();
             if (isWorkingZone(Y)) {
-                int midY = (TOP_OF_TAP_ZONE + BOTTOM_OF_TAP_ZONE) / 2;
                 int X = (int) e.getX();
                 Log.i(TAG_0, "tapZone X,Y = " + X + "," + Y);
                 if ((X < halfScrWidth && Y > midY) ||
