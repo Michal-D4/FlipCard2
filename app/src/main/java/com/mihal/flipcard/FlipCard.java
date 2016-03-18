@@ -423,10 +423,12 @@ public class FlipCard extends Activity implements DataExchange {
         if (TTS.getCurrentLanguage().equals(locale.getDisplayLanguage())) return;
 
         TTSmessageNo = TTS.setLanguage(locale);
-        String[] messages = getResources().getStringArray(R.array.tts_messages);
-        Log.i(TAG_1, messages[TTSmessageNo + 2] + " messageId=" + TTSmessageNo);
         if (isTTSavailable != (TTSmessageNo >= TextToSpeech.LANG_AVAILABLE)) {
-            isTTSavailable = !isTTSavailable;
+            isTTSavailable = true;
+            changeTTSMenuIcon();
+        } else {
+            isTTSavailable = false;
+            showMessage();
             changeTTSMenuIcon();
         }
     }
@@ -523,7 +525,7 @@ public class FlipCard extends Activity implements DataExchange {
                                 if (status == TextToSpeech.SUCCESS) {
                                     getPersistence(DBAdapter.getMyPersist());
                                     Log.i(TAG_1, "checkForTTS -> onInit " + (TTS == null));
-                                    //changeTTSLocale();
+                                    //changeTTSLocale();  // TODO 2016-03-18 why
                                 } else if (status == TextToSpeech.ERROR) {
                                     TTS_failed(2);
                                 }
@@ -545,20 +547,9 @@ public class FlipCard extends Activity implements DataExchange {
     }
 
     private void TTS_failed(int errID) {
-        // TODO: 2016-01-19 change TTS icon
         isTTSavailable = false;
-        switch (errID) {
-            case 1: // language is disabled
-                Log.i(TAG_1, "TTS_failed -  language is disabled");
-                break;
-            case 2: // onInit status ERROR
-                Log.i(TAG_1, "TTS_failed -  onInit status ERROR");
-                break;
-            case 3: // ACTION_CHECK_TTS_DATA is not pass
-                Log.i(TAG_1, "TTS_failed -  ACTION_CHECK_TTS_DATA is not pass");
-        }
-        Toast.makeText(getApplicationContext(), "Sorry! Text To Speech failed...",
-                Toast.LENGTH_LONG).show();
+        showMessage();
+        changeTTSMenuIcon();
     }
 
     @Override
@@ -1257,7 +1248,7 @@ public class FlipCard extends Activity implements DataExchange {
         }
     }
 
-    class FlipGestureDetector extends GestureDetector.SimpleOnGestureListener {
+    private class FlipGestureDetector extends GestureDetector.SimpleOnGestureListener {
         private static final int MIN_DISTANCE = 50;
         private static final int VELOCITY_THRESHOLD = 60;
         private static final int TAP_NEXT = 1;
