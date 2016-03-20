@@ -39,5 +39,9 @@
         <item>Language is available for the language and country specified by the locale, but not the variant.</item>
         <item>Language is available exactly as specified by the locale.</item>
     </string-array>
+    <string-array name="tts_messages2">
+        <item>Initialize the text-to-speech engine is failed</item>
+        <item>Check of voice data is failed</item>
+    </string-array>
 
 </resources>

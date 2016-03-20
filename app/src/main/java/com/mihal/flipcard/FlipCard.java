@@ -424,11 +424,7 @@ public class FlipCard extends Activity implements DataExchange {
 
         TTSmessageNo = TTS.setLanguage(locale);
         if (isTTSavailable != (TTSmessageNo >= TextToSpeech.LANG_AVAILABLE)) {
-            isTTSavailable = true;
-            changeTTSMenuIcon();
-        } else {
-            isTTSavailable = false;
-            showMessage();
+            isTTSavailable = !isTTSavailable;
             changeTTSMenuIcon();
         }
     }
@@ -524,10 +520,10 @@ public class FlipCard extends Activity implements DataExchange {
                             public void onInit(int status) {
                                 if (status == TextToSpeech.SUCCESS) {
                                     getPersistence(DBAdapter.getMyPersist());
-                                    Log.i(TAG_1, "checkForTTS -> onInit " + (TTS == null));
+                                    Log.i(TAG_1, "checkForTTS -> onInit " + !(TTS == null));
                                     //changeTTSLocale();  // TODO 2016-03-18 why
                                 } else if (status == TextToSpeech.ERROR) {
-                                    TTS_failed(2);
+                                    TTS_failed(1);
                                 }
                             }
                         };
@@ -539,7 +535,7 @@ public class FlipCard extends Activity implements DataExchange {
                         }
                         isTTSavailable = true;
                     } else {
-                        TTS_failed(3);
+                        TTS_failed(2);
                     }
             }
         }
@@ -548,7 +544,8 @@ public class FlipCard extends Activity implements DataExchange {
 
     private void TTS_failed(int errID) {
         isTTSavailable = false;
-        showMessage();
+        String[] messages = getResources().getStringArray(R.array.tts_messages2);
+        Toast.makeText(this, messages[errID - 1], Toast.LENGTH_SHORT).show();
         changeTTSMenuIcon();
     }
 
