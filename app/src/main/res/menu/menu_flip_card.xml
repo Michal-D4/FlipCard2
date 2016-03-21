@@ -11,6 +11,8 @@
         android:orderInCategory="300" android:showAsAction="always" />
     <item android:id="@+id/action_tts" android:icon="@drawable/ic_action_volume_on"
         android:orderInCategory="400" android:showAsAction="always" />
+    <!--
     <item android:id="@+id/action_info" android:icon="@drawable/ic_action_about"
         android:orderInCategory="500" android:showAsAction="always" />
+        -->
 </menu>

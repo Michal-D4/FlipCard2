@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
-import android.content.res.Configuration;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
@@ -98,24 +97,6 @@ public class FlipCard extends Activity implements DataExchange {
     private boolean isMarking = false;
 
     @Override
-    protected void onPostCreate(Bundle savedInstanceState) {
-        super.onPostCreate(savedInstanceState);
-        Log.i(TAG_2, "onPostCreate");
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        Log.i(TAG_2, "onStart");
-    }
-
-    @Override
-    public void onAttachedToWindow() {
-        super.onAttachedToWindow();
-        Log.i(TAG_2, "onAttachedToWindow");
-    }
-
-    @Override
     protected void onResume() {
         super.onResume();
         Log.i(TAG_0, "onResume");
@@ -123,24 +104,6 @@ public class FlipCard extends Activity implements DataExchange {
                 " (detector != null) =" + (detector != null));
         GestureDetector.SimpleOnGestureListener FGL = new FlipGestureDetector();
         detector = new GestureDetector(this, FGL);
-    }
-
-    @Override
-    protected void onPostResume() {
-        super.onPostResume();
-        Log.i(TAG_2, "onPostResume");
-    }
-
-    @Override
-    public void onContentChanged() {
-        super.onContentChanged();
-        Log.i(TAG_2, "onContentChanged");
-    }
-
-    @Override
-    public void onConfigurationChanged(Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
-        Log.i(TAG_2, "onConfigurationChanged");
     }
 
     @Override
@@ -521,8 +484,8 @@ public class FlipCard extends Activity implements DataExchange {
                                 if (status == TextToSpeech.SUCCESS) {
                                     getPersistence(DBAdapter.getMyPersist());
                                     Log.i(TAG_1, "checkForTTS -> onInit " + !(TTS == null));
-                                    //changeTTSLocale();  // TODO 2016-03-18 why
-                                } else if (status == TextToSpeech.ERROR) {
+                                    //changeTTSLocale(); // TODO 2016-03-18 ? only in showStatusBar
+                                } else {
                                     TTS_failed(1);
                                 }
                             }
@@ -622,10 +585,12 @@ public class FlipCard extends Activity implements DataExchange {
                     showMessage();
                 }
             }
+            /*
             if (id == R.id.action_info) {
                 Toast.makeText(getApplicationContext(), "About will be shown here",
                         Toast.LENGTH_LONG).show();
             }
+            */
         }
         return super.onOptionsItemSelected(item);
     }
