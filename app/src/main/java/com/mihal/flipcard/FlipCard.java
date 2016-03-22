@@ -74,7 +74,6 @@ public class FlipCard extends Activity implements DataExchange {
     static private final String WORD_NUMBER = "WORD_NUMBER";
     private int currWord;
     static private final String CURR_WORD = "CURR_WORD";
-    static private final String CURR_ITEM = "CURR_ITEM";
     private boolean isSettingNow = false;
     private MyPersist myPersist;
     private final int PICK_FILE_REQUEST = 1;
@@ -130,11 +129,6 @@ public class FlipCard extends Activity implements DataExchange {
                 tvTranscript.setText(tmp.getTranscript());
             }
         }
-        /*
-        int newId = tmp.getFile_id();
-        wnItem wi = wordsNumber.get(newId);
-        counts.setText(wi.toString());
-        */
     }
 
     @Override
@@ -519,11 +513,6 @@ public class FlipCard extends Activity implements DataExchange {
         getMenuInflater().inflate(R.menu.menu_flip_card, menu);
         Log.i(TAG_2, "onCreateOptionsMenu");
         this.menu = menu;
-/*
-        if (!isTTSavailable) {
-            changeTTSMenuIcon();
-        }
-*/
         return true;
     }
 
@@ -585,12 +574,6 @@ public class FlipCard extends Activity implements DataExchange {
                     showMessage();
                 }
             }
-            /*
-            if (id == R.id.action_info) {
-                Toast.makeText(getApplicationContext(), "About will be shown here",
-                        Toast.LENGTH_LONG).show();
-            }
-            */
         }
         return super.onOptionsItemSelected(item);
     }
