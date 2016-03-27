@@ -2,8 +2,10 @@ package com.mihal.flipcard;
 
 import android.app.Activity;
 import android.app.Fragment;
+import android.content.Context;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,6 +24,7 @@ public class PersistFragment extends Fragment  {
     private CheckBox cbLearned;
     private CheckBox cbPreview;
     public DataExchange mCallback;
+    static final String TAG_2 = "lifeCycle";
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
@@ -65,9 +68,10 @@ public class PersistFragment extends Fragment  {
         return inflater.inflate(R.layout.persist_fragment, container, false);
     }
 
-/* Added in API 23
+/* Added in API 23 */
     @Override
     public void onAttach(Context context) {
+        Log.i(TAG_2,"onAttach API 23");
         super.onAttach(context);
         try {
             mCallback = (DataExchange) context;
@@ -76,11 +80,12 @@ public class PersistFragment extends Fragment  {
                     + " must implement PersistExchange");
         }
     }
-*/
+
 
 /* Deprecated in API 23 */
     @Override
     public void onAttach(Activity activity) {
+        Log.i(TAG_2,"onAttach API before 23");
         super.onAttach(activity);
         try {
             mCallback = (DataExchange) activity;

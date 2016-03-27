@@ -53,7 +53,7 @@ public class FlipCard extends Activity implements DataExchange {
     @Override
     protected void onDestroy() {
         DBAdapter.close();
-        TTS.shutdown();
+        if (TTS != null) TTS.shutdown();
         super.onDestroy();
     }
 
@@ -70,9 +70,10 @@ public class FlipCard extends Activity implements DataExchange {
     private int flipsCounter = 0;
     static private final String FLIPS_COUNTER = "FLIPS_COUNTER";
     private int prevFileId;
+    static private final String PREV_FILE_ID = "PREV_FILE_ID";
     private SparseArray<wnItem> wordsNumber;
     static private final String WORD_NUMBER = "WORD_NUMBER";
-    private int currWord;
+    private int currWord = 0;
     static private final String CURR_WORD = "CURR_WORD";
     private boolean isSettingNow = false;
     private MyPersist myPersist;
@@ -81,6 +82,7 @@ public class FlipCard extends Activity implements DataExchange {
     private final int CHECK_TTS = 3;
     private MyTTS TTS;
     private boolean isTTSavailable = true;
+    private boolean isTTSchecked = false;
     private int TTSmessageNo;
     private boolean isReadingNow = false;
     static private final String IS_SETTING_NOW = "IS_SETTING_NOW";
@@ -98,9 +100,8 @@ public class FlipCard extends Activity implements DataExchange {
     @Override
     protected void onResume() {
         super.onResume();
-        Log.i(TAG_0, "onResume");
-        Log.i(TAG_0, "(menu != null) =" + (menu != null) +
-                " (detector != null) =" + (detector != null));
+        Log.i(TAG_2, "onResume");
+        SetWords();
         GestureDetector.SimpleOnGestureListener FGL = new FlipGestureDetector();
         detector = new GestureDetector(this, FGL);
     }
@@ -108,14 +109,16 @@ public class FlipCard extends Activity implements DataExchange {
     @Override
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
+        Log.i(TAG_2, "onRestoreInstanceState");
 
         currWord = savedInstanceState.getInt(CURR_WORD);
         flipsCounter = savedInstanceState.getInt(FLIPS_COUNTER);
         isSettingNow = savedInstanceState.getBoolean(IS_SETTING_NOW);
         wordsNumber = savedInstanceState.getSparseParcelableArray(WORD_NUMBER);
+        prevFileId = savedInstanceState.getInt(PREV_FILE_ID);
 
         if (isSettingNow) return;
-        if (Words.size() == 0) return;
+        if (Words.size() == 0) return;   // TODO Words & myPersist are already initialized ?
         dictEntry tmp = Words.get(currWord);
         if (myPersist.isPreview()) {
             preview.setText(tmp.getRu());
@@ -133,11 +136,18 @@ public class FlipCard extends Activity implements DataExchange {
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
+        Log.i(TAG_2, "onSaveInstanceState");
         outState.putInt(CURR_WORD, currWord);
         outState.putInt(FLIPS_COUNTER, flipsCounter);
         outState.putBoolean(IS_SETTING_NOW, isSettingNow);
+        outState.putInt(PREV_FILE_ID, prevFileId);
 
         outState.putSparseParcelableArray(WORD_NUMBER, wordsNumber);
+        Log.i(TAG_2, "currWord: " + currWord);
+        Log.i(TAG_2, "flipsCounter: " + flipsCounter);
+        Log.i(TAG_2, "isSettingNow: " + isSettingNow);
+        Log.i(TAG_2, "wordsNumber.size: " + wordsNumber.size());
+        Log.i(TAG_2, "prevFileId: " + prevFileId);
 
         super.onSaveInstanceState(outState);
     }
@@ -173,13 +183,16 @@ public class FlipCard extends Activity implements DataExchange {
         Words = new ArrayList<>();
         wordsNumber = new SparseArray<>();
 
-        myPersist = null;
+        myPersist = DBAdapter.getMyPersist();
+
         addOnCreate();
-        checkForTTS();
+        //checkForTTS();   - when first usage
         Log.i(TAG_2, "onCreate end");
     }
 
     private void checkForTTS() {
+        Log.i(TAG_2, "checkForTTS");
+        Toast.makeText(this,R.string.start_tts,Toast.LENGTH_SHORT).show();
         Intent checkTTSIntent = new Intent();
         checkTTSIntent.setAction(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA);
         startActivityForResult(checkTTSIntent, CHECK_TTS);
@@ -255,12 +268,13 @@ public class FlipCard extends Activity implements DataExchange {
                 append(ss.subSequence(start, end)).append('}').
                 append(ss.subSequence(end, ss.length()));
         Words.get(currWord).setTranscript(sb.toString());
-        DBAdapter.setWords(Words.get(currWord));
+        DBAdapter.updateWord(Words.get(currWord));
         tvTranscript.clearFocus();
         tvTranscript.setText(Words.get(currWord).getTranscript());
     }
 
     private void getPersistence(MyPersist myPersist) {
+        Log.i(TAG_2, "getPersistence: myPersist is null? " + (this.myPersist == null));
         if (this.myPersist == null) {
             this.myPersist = myPersist;
             SetWords();
@@ -277,6 +291,7 @@ public class FlipCard extends Activity implements DataExchange {
     }
 
     void changePreviewMode() {
+        Log.i(TAG_2,"changePreviewMode: isPreview=" + myPersist.isPreview());
         if (myPersist.isPreview()) {
             preview.setVisibility(View.VISIBLE);
             fillAllTextViews();
@@ -296,9 +311,10 @@ public class FlipCard extends Activity implements DataExchange {
     }
 
     void SetWords() {
+        Log.i(TAG_2, "SetWords");
         Words.clear();
         wordsNumber.clear();
-        currWord = 0;
+     //   currWord = 0;
         int fId = 0;
         int nn = 0;
         Cursor wordCursor = DBAdapter.fetchWords(myPersist.isShow_learned());
@@ -350,9 +366,14 @@ public class FlipCard extends Activity implements DataExchange {
     }
 
     private void showStatusBar(int incr) {
+        Log.i(TAG_2, "showStatusBar");
+        Log.i(TAG_2, "currWord: " + currWord);
+        Log.i(TAG_2, "prevFileId: " + prevFileId);
         if (Words.isEmpty()) return;
         int newId = Words.get(currWord).getFile_id();
+        Log.i(TAG_2, "newFileId: " + newId);
         wnItem curItem = wordsNumber.get(newId);
+        Log.i(TAG_2, "curItem: " + curItem.toString());
         if (prevFileId != newId) {
             descr.setText(String.format("%s/%s",
                     DBAdapter.getFileName(newId), DBAdapter.getWordGroupName(newId)));
@@ -364,6 +385,7 @@ public class FlipCard extends Activity implements DataExchange {
             int curNum = curItem.getCur();
             curNum += incr;
             curItem.setCur(curNum);
+            Log.i(TAG_2, "set curItem: " + curItem.toString());
         }
         counts.setText(curItem.toString());
     }
@@ -380,6 +402,7 @@ public class FlipCard extends Activity implements DataExchange {
         if (TTS.getCurrentLanguage().equals(locale.getDisplayLanguage())) return;
 
         TTSmessageNo = TTS.setLanguage(locale);
+        // if availability of TTS changed ?
         if (isTTSavailable != (TTSmessageNo >= TextToSpeech.LANG_AVAILABLE)) {
             isTTSavailable = !isTTSavailable;
             changeTTSMenuIcon();
@@ -451,7 +474,7 @@ public class FlipCard extends Activity implements DataExchange {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        Log.i(TAG_2, "onActivityResult start");
+        Log.i(TAG_2, "onActivityResult start: requestCode=" + requestCode);
         if (isReadingNow) {
             Toast.makeText(this, R.string.is_reading, Toast.LENGTH_SHORT).show();
         } else {
@@ -476,8 +499,8 @@ public class FlipCard extends Activity implements DataExchange {
                             @Override
                             public void onInit(int status) {
                                 if (status == TextToSpeech.SUCCESS) {
-                                    getPersistence(DBAdapter.getMyPersist());
-                                    Log.i(TAG_1, "checkForTTS -> onInit " + !(TTS == null));
+                                    Log.i(TAG_2, "checkForTTS -> onInit " + !(TTS == null));
+                                    //getPersistence(DBAdapter.getMyPersist());
                                     //changeTTSLocale(); // TODO 2016-03-18 ? only in showStatusBar
                                 } else {
                                     TTS_failed(1);
@@ -491,9 +514,11 @@ public class FlipCard extends Activity implements DataExchange {
                             TTS = new MyTTS21(this, listener);
                         }
                         isTTSavailable = true;
+                        SpeakThis();
                     } else {
                         TTS_failed(2);
                     }
+                    isTTSchecked = true;
             }
         }
         Log.i(TAG_2, "onActivityResult end");
@@ -568,14 +593,22 @@ public class FlipCard extends Activity implements DataExchange {
                 return true;
             }
             if (id == R.id.action_tts) {
-                if (isTTSavailable) {
-                    TTS.mySpeak(tvWord.getText(), TextToSpeech.QUEUE_FLUSH);
+                if (isTTSchecked) {
+                    SpeakThis();
                 } else {
-                    showMessage();
+                    checkForTTS();
                 }
             }
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void SpeakThis() {
+        if (isTTSavailable) {
+            TTS.mySpeak(tvWord.getText(), TextToSpeech.QUEUE_FLUSH);
+        } else {
+            showMessage();
+        }
     }
 
     private void showMessage() {
@@ -947,7 +980,7 @@ public class FlipCard extends Activity implements DataExchange {
             mDb.update(WORDS_TABLE, val, WORD_ID + "=" + String.valueOf(wordID), null);
         }
 
-        public void setWords(dictEntry de) {
+        public void updateWord(dictEntry de) {
             ContentValues val = new ContentValues();
             val.put(NATIVE, de.getRuStr());
             val.put(FOREIGN, de.getEnStr());
