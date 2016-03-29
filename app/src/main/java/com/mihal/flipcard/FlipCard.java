@@ -158,8 +158,6 @@ public class FlipCard extends Activity implements DataExchange {
         Log.i(TAG_2, "onCreate start");
         setContentView(R.layout.activity_flip_card);
 
-        prevFileId = 0;
-
         descr = (TextView) findViewById(R.id.tb_descr);
         counts = (TextView) findViewById(R.id.tb_count);
 
@@ -291,7 +289,7 @@ public class FlipCard extends Activity implements DataExchange {
     }
 
     void changePreviewMode() {
-        Log.i(TAG_2,"changePreviewMode: isPreview=" + myPersist.isPreview());
+        Log.i(TAG_2, "changePreviewMode: isPreview=" + myPersist.isPreview());
         if (myPersist.isPreview()) {
             preview.setVisibility(View.VISIBLE);
             fillAllTextViews();
@@ -300,7 +298,6 @@ public class FlipCard extends Activity implements DataExchange {
             preview.setVisibility(View.GONE);
             tvTranscript.setText("");
             if (Words.isEmpty()) {
-                prevFileId = 0;
                 descr.setText("");
                 counts.setText("");
                 tvWord.setText(getString(R.string.nothing_selected));
@@ -314,7 +311,7 @@ public class FlipCard extends Activity implements DataExchange {
         Log.i(TAG_2, "SetWords");
         Words.clear();
         wordsNumber.clear();
-     //   currWord = 0;
+        currWord = 0;
         int fId = 0;
         int nn = 0;
         Cursor wordCursor = DBAdapter.fetchWords(myPersist.isShow_learned());
@@ -335,23 +332,20 @@ public class FlipCard extends Activity implements DataExchange {
             } while (wordCursor.moveToNext());
             if (!Words.isEmpty()) {
                 wordsNumber.append(fId, new wnItem(nn));
-                showStatusBar(0);
                 if (myPersist.isPreview()) {
                     fillAllTextViews();
                 } else {
                     tvWord.setText(Words.get(currWord).getRu());
                 }
-            } else {
-                prevFileId = 0;
             }
         } else {
             fillAllTextViews();
         }
+        showStatusBar(currWord);
     }
 
     private void fillAllTextViews() {
         if (Words.isEmpty()) {
-            prevFileId = 0;
             preview.setText("");
             descr.setText("");
             counts.setText("");
@@ -365,9 +359,10 @@ public class FlipCard extends Activity implements DataExchange {
         }
     }
 
-    private void showStatusBar(int incr) {
+    private void showStatusBar(int savedCurrWord) {
         Log.i(TAG_2, "showStatusBar");
         Log.i(TAG_2, "currWord: " + currWord);
+        Log.i(TAG_2, Words.get(currWord).getRuStr());
         Log.i(TAG_2, "prevFileId: " + prevFileId);
         if (Words.isEmpty()) return;
         int newId = Words.get(currWord).getFile_id();
@@ -381,9 +376,10 @@ public class FlipCard extends Activity implements DataExchange {
             Log.i(TAG_1, "showStatusBar  newLang =" + newLang);
             changeTTSLocale(newLang);
             prevFileId = newId;
-        } else {
+        }
+        if (currWord != savedCurrWord) {
             int curNum = curItem.getCur();
-            curNum += incr;
+            curNum += (currWord - savedCurrWord);
             curItem.setCur(curNum);
             Log.i(TAG_2, "set curItem: " + curItem.toString());
         }
@@ -416,7 +412,7 @@ public class FlipCard extends Activity implements DataExchange {
                     prevFileId = Words.get(currWord).getFile_id();
                     currWord--;
                     fillAllTextViews();
-                    showStatusBar(-1);
+                    showStatusBar(currWord + 1);
                 } else {
                     Toast.makeText(this, R.string.first_word, Toast.LENGTH_SHORT).show();
                 }
@@ -434,11 +430,12 @@ public class FlipCard extends Activity implements DataExchange {
     }
 
     private void NextWord() {
+        int savedCurrWord = currWord;
         if (myPersist.isPreview()) {
+            prevFileId = Words.get(currWord).file_id;
             currWord++;
             if (currWord < Words.size()) {
                 fillAllTextViews();
-                showStatusBar(1);
             } else {
                 currWord--;
                 Toast.makeText(this, R.string.last_word, Toast.LENGTH_SHORT).show();
@@ -446,7 +443,6 @@ public class FlipCard extends Activity implements DataExchange {
         } else {
             tvTranscript.setText("");
             if (!Words.isEmpty()) {
-                prevFileId = Words.get(currWord).file_id;
                 dictEntry w = Words.remove(currWord);
                 if (flipsCounter > 0) {
                     flipsCounter = 0;
@@ -456,9 +452,9 @@ public class FlipCard extends Activity implements DataExchange {
                     else
                         Words.add(w);
                 } else {
+                    savedCurrWord = -1;   // to change counter in Status bar.
                     // change status learned
                     if (!w.isLearned()) DBAdapter.setLearned(w.getWord_id());
-                    showStatusBar(1);
                 }
                 if (!Words.isEmpty()) {
                     tvWord.setText(Words.get(currWord).getRu());
@@ -470,6 +466,7 @@ public class FlipCard extends Activity implements DataExchange {
                 Toast.makeText(this, R.string.all_words, Toast.LENGTH_SHORT).show();
             }
         }
+        showStatusBar(savedCurrWord);
     }
 
     @Override
@@ -656,24 +653,12 @@ public class FlipCard extends Activity implements DataExchange {
 
         @Override
         protected void onPostExecute(Integer result) {
+            Log.i(TAG_2, "onPostExecute");
 
             isReadingNow = false;
             pbRead.setVisibility(ProgressBar.INVISIBLE);
-
             Context context = getApplicationContext();
 
-            DBAdapter.setPath(persist.getPath());
-            if (!Words.isEmpty()) {
-                showStatusBar(0);
-                if (myPersist.isPreview()) {
-                    fillAllTextViews();
-                } else {
-                    prevFileId = 0;
-                    descr.setText("");
-                    counts.setText("");
-                    tvWord.setText(Words.get(currWord).getRu());
-                }
-            }
             if (result == FILE_ERROR_READING)
                 Toast.makeText(context, R.string.error_reading, Toast.LENGTH_LONG).show();
             else if (result == FILE_ERROR_OPENING)
@@ -683,6 +668,19 @@ public class FlipCard extends Activity implements DataExchange {
                         String.format(getString(R.string.words_no), result),
                         Toast.LENGTH_LONG).show();
                 currWord = 0;
+
+                DBAdapter.setPath(persist.getPath());
+                if (!Words.isEmpty()) {
+                    showStatusBar(currWord);
+                    if (myPersist.isPreview()) {
+                        fillAllTextViews();
+                    } else {
+                        prevFileId = 0;
+                        descr.setText("");
+                        counts.setText("");
+                        tvWord.setText(Words.get(currWord).getRu());
+                    }
+                }
             }
         }
 
@@ -1312,11 +1310,12 @@ public class FlipCard extends Activity implements DataExchange {
                 if ((X < halfScrWidth && Y > midY) ||
                         (X > halfScrWidth && Y < midY)) {
                     rez = TAP_NEXT;
+                    Log.i(TAG_0, "tapZone is TAP_NEXT = " + rez);
                 } else {
                     rez = TAP_PREV_FLIP;
+                    Log.i(TAG_0, "tapZone is TAP_PREV_FLIP = " + rez);
                 }
             }
-            Log.i(TAG_0, "tapZone rez = " + rez);
             return rez;
         }
 
