@@ -101,7 +101,7 @@ public class FlipCard extends Activity implements DataExchange {
     protected void onResume() {
         super.onResume();
         Log.i(TAG_2, "onResume");
-        SetWords();
+        showStatusBar(currWord);
         GestureDetector.SimpleOnGestureListener FGL = new FlipGestureDetector();
         detector = new GestureDetector(this, FGL);
     }
@@ -183,6 +183,8 @@ public class FlipCard extends Activity implements DataExchange {
 
         myPersist = DBAdapter.getMyPersist();
 
+        SetWords();
+
         addOnCreate();
         //checkForTTS();   - when first usage
         Log.i(TAG_2, "onCreate end");
@@ -245,7 +247,7 @@ public class FlipCard extends Activity implements DataExchange {
     }
 
     private void addOnCreate() {
-        main = (LinearLayout) findViewById(R.id.ID);
+        main = (LinearLayout) findViewById(R.id.MAIN);
 
         LinearLayout llWords = (LinearLayout) findViewById(R.id.linear_layout);
         View.OnTouchListener listener = new View.OnTouchListener() {
@@ -341,7 +343,6 @@ public class FlipCard extends Activity implements DataExchange {
         } else {
             fillAllTextViews();
         }
-        showStatusBar(currWord);
     }
 
     private void fillAllTextViews() {
@@ -362,27 +363,31 @@ public class FlipCard extends Activity implements DataExchange {
     private void showStatusBar(int savedCurrWord) {
         Log.i(TAG_2, "showStatusBar");
         Log.i(TAG_2, "currWord: " + currWord);
-        Log.i(TAG_2, Words.get(currWord).getRuStr());
         Log.i(TAG_2, "prevFileId: " + prevFileId);
         if (Words.isEmpty()) return;
         int newId = Words.get(currWord).getFile_id();
         Log.i(TAG_2, "newFileId: " + newId);
+        Log.i(TAG_2, "Status text is empty: " + "".equals(descr.getText()));
         wnItem curItem = wordsNumber.get(newId);
         Log.i(TAG_2, "curItem: " + curItem.toString());
-        if (prevFileId != newId) {
+        if ((prevFileId != newId) || "".equals(descr.getText())) {
             descr.setText(String.format("%s/%s",
                     DBAdapter.getFileName(newId), DBAdapter.getWordGroupName(newId)));
             String newLang = DBAdapter.getLanguage(newId);
-            Log.i(TAG_1, "showStatusBar  newLang =" + newLang);
+            Log.i(TAG_2, "showStatusBar  newLang =" + newLang);
             changeTTSLocale(newLang);
             prevFileId = newId;
         }
-        if (currWord != savedCurrWord) {
-            int curNum = curItem.getCur();
-            curNum += (currWord - savedCurrWord);
-            curItem.setCur(curNum);
-            Log.i(TAG_2, "set curItem: " + curItem.toString());
+        int curNum = curItem.getCur();
+        if (curNum == 0) {
+            curItem.setCur(1);
+        } else {
+            if (currWord != savedCurrWord) {
+                curNum += (currWord - savedCurrWord);
+                curItem.setCur(curNum);
+            }
         }
+        Log.i(TAG_2, "curItem: " + curItem.toString());
         counts.setText(curItem.toString());
     }
 
@@ -497,8 +502,6 @@ public class FlipCard extends Activity implements DataExchange {
                             public void onInit(int status) {
                                 if (status == TextToSpeech.SUCCESS) {
                                     Log.i(TAG_2, "checkForTTS -> onInit " + !(TTS == null));
-                                    //getPersistence(DBAdapter.getMyPersist());
-                                    //changeTTSLocale(); // TODO 2016-03-18 ? only in showStatusBar
                                 } else {
                                     TTS_failed(1);
                                 }
@@ -1094,7 +1097,7 @@ public class FlipCard extends Activity implements DataExchange {
         }
 
         public wnItem(int n2) {
-            cur = 1;
+            cur = 0;
             tot = n2;
         }
 
@@ -1229,14 +1232,11 @@ public class FlipCard extends Activity implements DataExchange {
         private static final int VELOCITY_THRESHOLD = 60;
         private static final int TAP_NEXT = 1;
         private static final int TAP_PREV_FLIP = 2;
-        private final int halfScrWidth;
+        private int halfScrWidth;
         private int midY;
 
-        public FlipGestureDetector() {
-            int[] loc = new int[2];
-            main.getLocationOnScreen(loc);
-            halfScrWidth = main.getWidth() / 2;
-        }
+//        public FlipGestureDetector() {
+//        }
 
         @Override
         public boolean onSingleTapUp(MotionEvent e) {
@@ -1264,6 +1264,7 @@ public class FlipCard extends Activity implements DataExchange {
             int[] loc = new int[2];
             main.getLocationOnScreen(loc);
             int h = main.getHeight();
+            halfScrWidth = main.getWidth() / 2;
             TOP_OF_TAP_ZONE = loc[1];
             BOTTOM_OF_TAP_ZONE = TOP_OF_TAP_ZONE + h;
             Log.i(TAG_0, "loc[1]=" + loc[1] + " height=" + h +
