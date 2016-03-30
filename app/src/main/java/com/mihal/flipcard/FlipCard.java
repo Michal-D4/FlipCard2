@@ -368,6 +368,7 @@ public class FlipCard extends Activity implements DataExchange {
         int newId = Words.get(currWord).getFile_id();
         Log.i(TAG_2, "newFileId: " + newId);
         Log.i(TAG_2, "Status text is empty: " + "".equals(descr.getText()));
+        Log.i(TAG_2, Words.get(currWord).getRu().toString());
         wnItem curItem = wordsNumber.get(newId);
         Log.i(TAG_2, "curItem: " + curItem.toString());
         if ((prevFileId != newId) || "".equals(descr.getText())) {
@@ -377,12 +378,9 @@ public class FlipCard extends Activity implements DataExchange {
             Log.i(TAG_2, "showStatusBar  newLang =" + newLang);
             changeTTSLocale(newLang);
             prevFileId = newId;
-        }
-        int curNum = curItem.getCur();
-        if (curNum == 0) {
-            curItem.setCur(1);
         } else {
             if (currWord != savedCurrWord) {
+                int curNum = curItem.getCur();
                 curNum += (currWord - savedCurrWord);
                 curItem.setCur(curNum);
             }
@@ -561,7 +559,6 @@ public class FlipCard extends Activity implements DataExchange {
         if (!isSettingNow) {  // to not invoke menu second time
             int id = item.getItemId();
 
-            //noinspection SimplifiableIfStatement
             if (id == R.id.action_settings) {
                 isSettingNow = true;
                 if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
@@ -620,6 +617,7 @@ public class FlipCard extends Activity implements DataExchange {
     public void receivePersist(MyPersist myPersist) {
         DBAdapter.setMyPersist(myPersist);
         getPersistence(myPersist);  // to change visibility if necessary
+        showStatusBar(currWord);
         isSettingNow = false;
     }
 
@@ -1097,7 +1095,7 @@ public class FlipCard extends Activity implements DataExchange {
         }
 
         public wnItem(int n2) {
-            cur = 0;
+            cur = 1;
             tot = n2;
         }
 
