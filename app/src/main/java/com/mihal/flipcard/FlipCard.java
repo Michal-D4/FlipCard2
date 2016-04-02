@@ -120,6 +120,7 @@ public class FlipCard extends Activity implements DataExchange {
         if (isSettingNow) return;
         if (Words.size() == 0) return;   // TODO Words & myPersist are already initialized ?
         dictEntry tmp = Words.get(currWord);
+        Log.i(TAG_2, Words.get(currWord).getRu().toString());
         if (myPersist.isPreview()) {
             preview.setText(tmp.getRu());
             tvWord.setText(tmp.getEn());
@@ -305,12 +306,13 @@ public class FlipCard extends Activity implements DataExchange {
                 tvWord.setText(getString(R.string.nothing_selected));
             } else {
                 tvWord.setText(Words.get(currWord).getRu());
+                Log.i(TAG_2, "changePreviewMode:" + Words.get(currWord).getRu());
             }
         }
     }
 
     void SetWords() {
-        Log.i(TAG_2, "SetWords");
+        Log.i(TAG_2, "SetWords start");
         Words.clear();
         wordsNumber.clear();
         currWord = 0;
@@ -322,6 +324,7 @@ public class FlipCard extends Activity implements DataExchange {
                 int id = wordCursor.getInt(wordCursor.getColumnIndex("file_id"));
                 if (id != fId) {
                     wordsNumber.append(fId, new wnItem(nn));
+                    Log.i(TAG_2, String.format("%s %d, %d", "wnItem:", fId, nn));
                     fId = id;
                     nn = 0;
                 }
@@ -331,6 +334,9 @@ public class FlipCard extends Activity implements DataExchange {
                         wordCursor.getString(wordCursor.getColumnIndex("transcription")),
                         (wordCursor.getInt(wordCursor.getColumnIndex("is_learned")) == 1), fId));
                 nn++;
+                Log.i(TAG_2, String.format("%s %d %s","wnItem:",
+                        wordCursor.getInt(wordCursor.getColumnIndex("_id")),
+                        wordCursor.getString(wordCursor.getColumnIndex("word"))));
             } while (wordCursor.moveToNext());
             if (!Words.isEmpty()) {
                 wordsNumber.append(fId, new wnItem(nn));
@@ -338,11 +344,13 @@ public class FlipCard extends Activity implements DataExchange {
                     fillAllTextViews();
                 } else {
                     tvWord.setText(Words.get(currWord).getRu());
+                    Log.i(TAG_2, Words.get(currWord).getRu().toString());
                 }
             }
         } else {
             fillAllTextViews();
         }
+        Log.i(TAG_2, "SetWords end");
     }
 
     private void fillAllTextViews() {
@@ -357,6 +365,7 @@ public class FlipCard extends Activity implements DataExchange {
             preview.setText(tmp.getRu());
             tvWord.setText(tmp.getEn());
             tvTranscript.setText(tmp.getTranscript());
+            Log.i(TAG_2, "fillAllTextView:" + Words.get(currWord).getRu());
         }
     }
 
@@ -368,7 +377,8 @@ public class FlipCard extends Activity implements DataExchange {
         int newId = Words.get(currWord).getFile_id();
         Log.i(TAG_2, "newFileId: " + newId);
         Log.i(TAG_2, "Status text is empty: " + "".equals(descr.getText()));
-        Log.i(TAG_2, Words.get(currWord).getRu().toString());
+        Log.i(TAG_2, "WW " + Words.get(currWord).getRu().toString());
+        Log.i(TAG_2, "TT " + tvWord.getText());
         wnItem curItem = wordsNumber.get(newId);
         Log.i(TAG_2, "curItem: " + curItem.toString());
         if ((prevFileId != newId) || "".equals(descr.getText())) {
@@ -427,13 +437,17 @@ public class FlipCard extends Activity implements DataExchange {
                     tvWord.setText(Words.get(currWord).getEn());
                     tvTranscript.setText(Words.get(currWord).getTranscript());
                 }
+                Log.i(TAG_2, "FlipCard:" + Words.get(currWord).getRu());
                 flipsCounter++;
+                Log.i(TAG_2, "flipsCounter=" + flipsCounter);
             }
         }
     }
 
     private void NextWord() {
         int savedCurrWord = currWord;
+        if (!Words.isEmpty())
+            Log.i(TAG_2, "NextWord 1:" + Words.get(currWord).getRu());
         if (myPersist.isPreview()) {
             prevFileId = Words.get(currWord).file_id;
             currWord++;
@@ -449,18 +463,23 @@ public class FlipCard extends Activity implements DataExchange {
                 dictEntry w = Words.remove(currWord);
                 if (flipsCounter > 0) {
                     flipsCounter = 0;
-                    int iPos = 5 + (int) (Math.random() * 15.0d);
-                    if (Words.size() > iPos)
+                    //int iPos = 5 + (int) (Math.random() * 15.0d);
+                    int iPos = 2 + (int) (Math.random() * 3.0d);  // легше отследить в трасе
+                    if (Words.size() > iPos) {
+                        Log.i(TAG_2, String.format("NextWord:iPos= %d Id= %d", iPos,
+                                w.getWord_id()));
                         Words.add(iPos, w);
-                    else
+                    } else
                         Words.add(w);
                 } else {
                     savedCurrWord = -1;   // to change counter in Status bar.
                     // change status learned
+                    Log.i(TAG_2, "Set learned: " + w.getRu() + " Id: " + w.getWord_id());
                     if (!w.isLearned()) DBAdapter.setLearned(w.getWord_id());
                 }
                 if (!Words.isEmpty()) {
                     tvWord.setText(Words.get(currWord).getRu());
+                    Log.i(TAG_2, "NextWord:" + Words.get(currWord).getRu());
                 }
             } else {
                 prevFileId = 0;
@@ -680,6 +699,7 @@ public class FlipCard extends Activity implements DataExchange {
                         descr.setText("");
                         counts.setText("");
                         tvWord.setText(Words.get(currWord).getRu());
+                        Log.i(TAG_2, "onPostExecute:" + Words.get(currWord).getRu());
                     }
                 }
             }
@@ -1242,11 +1262,11 @@ public class FlipCard extends Activity implements DataExchange {
             if (isMarking) return false;
             switch (tapZone(e)) {
                 case TAP_NEXT:
-                    Log.i(TAG_0, "onSingleTapUp - TAP_NEXT");
+                    Log.i(TAG_2, "onSingleTapUp - TAP_NEXT");
                     NextWord();
                     return true;
                 case TAP_PREV_FLIP:
-                    Log.i(TAG_0, "onSingleTapUp - TAP_PREV_FLIP");
+                    Log.i(TAG_2, "onSingleTapUp - TAP_PREV_FLIP");
                     flip_card();
                     return true;
                 default:
