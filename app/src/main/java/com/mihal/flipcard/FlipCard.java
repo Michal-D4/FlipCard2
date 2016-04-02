@@ -60,6 +60,7 @@ public class FlipCard extends Activity implements DataExchange {
     private Menu menu;
     private ProgressBar pbRead;
     private ArrayList<dictEntry> Words;
+    static private final String WORDS = "WORDS";
     private LinearLayout main;
     private TextView descr;
     private TextView counts;
@@ -116,6 +117,7 @@ public class FlipCard extends Activity implements DataExchange {
         isSettingNow = savedInstanceState.getBoolean(IS_SETTING_NOW);
         wordsNumber = savedInstanceState.getSparseParcelableArray(WORD_NUMBER);
         prevFileId = savedInstanceState.getInt(PREV_FILE_ID);
+        Words = savedInstanceState.getParcelableArrayList(WORDS);
 
         if (isSettingNow) return;
         if (Words.size() == 0) return;   // TODO Words & myPersist are already initialized ?
@@ -150,6 +152,8 @@ public class FlipCard extends Activity implements DataExchange {
         Log.i(TAG_2, "wordsNumber.size: " + wordsNumber.size());
         Log.i(TAG_2, "prevFileId: " + prevFileId);
 
+        outState.putParcelableArrayList(WORDS, Words);
+
         super.onSaveInstanceState(outState);
     }
 
@@ -157,6 +161,7 @@ public class FlipCard extends Activity implements DataExchange {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.i(TAG_2, "onCreate start");
+
         setContentView(R.layout.activity_flip_card);
 
         descr = (TextView) findViewById(R.id.tb_descr);
@@ -184,7 +189,7 @@ public class FlipCard extends Activity implements DataExchange {
 
         myPersist = DBAdapter.getMyPersist();
 
-        SetWords();
+        if (savedInstanceState == null) SetWords();
 
         addOnCreate();
         //checkForTTS();   - when first usage
@@ -193,7 +198,7 @@ public class FlipCard extends Activity implements DataExchange {
 
     private void checkForTTS() {
         Log.i(TAG_2, "checkForTTS");
-        Toast.makeText(this,R.string.start_tts,Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, R.string.start_tts, Toast.LENGTH_SHORT).show();
         Intent checkTTSIntent = new Intent();
         checkTTSIntent.setAction(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA);
         startActivityForResult(checkTTSIntent, CHECK_TTS);
@@ -334,7 +339,7 @@ public class FlipCard extends Activity implements DataExchange {
                         wordCursor.getString(wordCursor.getColumnIndex("transcription")),
                         (wordCursor.getInt(wordCursor.getColumnIndex("is_learned")) == 1), fId));
                 nn++;
-                Log.i(TAG_2, String.format("%s %d %s","wnItem:",
+                Log.i(TAG_2, String.format("%s %d %s", "wnItem:",
                         wordCursor.getInt(wordCursor.getColumnIndex("_id")),
                         wordCursor.getString(wordCursor.getColumnIndex("word"))));
             } while (wordCursor.moveToNext());
@@ -1102,14 +1107,10 @@ public class FlipCard extends Activity implements DataExchange {
                     }
                 };
 
-        public wnItem() {
-        }
+//        public wnItem() {
+//        }
 
         public wnItem(Parcel in) {
-            readFromParcel(in);
-        }
-
-        public void readFromParcel(Parcel in) {
             cur = in.readInt();
             tot = in.readInt();
         }
@@ -1133,13 +1134,50 @@ public class FlipCard extends Activity implements DataExchange {
         }
     }
 
-    static class dictEntry {
+    static class dictEntry implements Parcelable {
         private int word_id;
         private final String Ru;
         private final String En;
         private String Transcript;
         private final int file_id;
         private final boolean Learned;
+
+        @Override
+        public int describeContents() {
+            return 0;
+        }
+
+        @Override
+        public void writeToParcel(Parcel dest, int flags) {
+            dest.writeInt(word_id);
+            dest.writeInt(file_id);
+            dest.writeInt(Learned ? 1 : 0);
+            dest.writeString(Ru);
+            dest.writeString(En);
+            dest.writeString(Transcript);
+        }
+
+        public static final Creator<dictEntry> CREATOR =
+                new Creator<dictEntry>() {
+                    @Override
+                    public dictEntry createFromParcel(Parcel source) {
+                        return new dictEntry(source);
+                    }
+
+                    @Override
+                    public dictEntry[] newArray(int size) {
+                        return new dictEntry[0];
+                    }
+                };
+
+        dictEntry(Parcel in) {
+            word_id = in.readInt();
+            file_id = in.readInt();
+            Learned = (in.readInt() == 1);
+            Ru = in.readString();
+            En = in.readString();
+            Transcript = in.readString();
+        }
 
         // used when read from file
         public dictEntry(String[] ww, int fileId) {
