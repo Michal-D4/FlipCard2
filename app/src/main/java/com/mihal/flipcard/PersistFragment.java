@@ -86,7 +86,6 @@ public class PersistFragment extends Fragment  {
 /* Deprecated in API 23 */
     @Override
     public void onAttach(Activity activity) {
-        Log.i(TAG_2,"onAttach API before 23");
         super.onAttach(activity);
         try {
             mCallback = (DataExchange) activity;

@@ -26,13 +26,11 @@ public class MyTTS21 extends MyTTS {
 
     MyTTS21(Context context, TextToSpeech.OnInitListener listener) {
         super(context, listener);
-        Log.i(TAG_1, "MyTTS21");
     }
 
     @Override
     public int mySpeak(CharSequence text, int queueMode) {
         String toSpeak = String.valueOf(text);
-        Log.i(TAG_1, "MyTTSbefore21.speak -> " + toSpeak);
         return super.speak(toSpeak, queueMode, null, "speak");
     }
 
