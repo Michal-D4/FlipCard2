@@ -91,7 +91,7 @@ public class FlipCard extends Activity implements DataExchange {
     static private final int FILE_ERROR_READING = -1;
     static private final int FILE_ERROR_OPENING = -2;
     static LearnWordDBAdapter DBAdapter;
-//    static final String TAG_0 = "Gesture";
+    static final String TAG_0 = "Gesture";
 //    static final String TAG_1 = "logTTS";
 //    static final String TAG_2 = "lifeCycle";
 //    static final String TAG_4 = "language";
@@ -102,8 +102,8 @@ public class FlipCard extends Activity implements DataExchange {
     protected void onResume() {
         super.onResume();
         showStatusBar(currWord);
-        GestureDetector.SimpleOnGestureListener FGL = new FlipGestureDetector();
-        detector = new GestureDetector(this, FGL);
+        GestureDetector.SimpleOnGestureListener flipGestureDetector = new FlipGestureDetector();
+        detector = new GestureDetector(this, flipGestureDetector);
     }
 
     @Override
@@ -181,8 +181,7 @@ public class FlipCard extends Activity implements DataExchange {
 
         if (savedInstanceState == null) SetWords();
 
-        addOnCreate();
-        //checkForTTS();   - when first usage
+        main = (LinearLayout) findViewById(R.id.MAIN);
     }
 
     private void checkForTTS() {
@@ -235,21 +234,6 @@ public class FlipCard extends Activity implements DataExchange {
             }
         };
         tvTranscript.setCustomSelectionActionModeCallback(cb);
-    }
-
-    private void addOnCreate() {
-        main = (LinearLayout) findViewById(R.id.MAIN);
-
-        LinearLayout llWords = (LinearLayout) findViewById(R.id.linear_layout);
-        View.OnTouchListener listener = new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View view, MotionEvent motionEvent) {
-                Log.i(TAG_0, "onTouch - (detector == null)=" + (detector == null));
-                detector.onTouchEvent(motionEvent);
-                return false;
-            }
-        };
-        llWords.setOnTouchListener(listener);
     }
 
     private void markSelected(int start, int end) {
@@ -413,7 +397,6 @@ public class FlipCard extends Activity implements DataExchange {
 
     private void NextWord() {
         int savedCurrWord = currWord;
-        if (!Words.isEmpty())
         if (myPersist.isPreview()) {
             prevFileId = Words.get(currWord).file_id;
             currWord++;
@@ -429,18 +412,14 @@ public class FlipCard extends Activity implements DataExchange {
                 dictEntry w = Words.remove(currWord);
                 if (flipsCounter > 0) {
                     flipsCounter = 0;
-                    //int iPos = 5 + (int) (Math.random() * 15.0d);
-                    int iPos = 2 + (int) (Math.random() * 3.0d);  // легше отследить в трасе
-                    if (Words.size() > iPos) {
-                        Words.add(iPos, w);
-                    } else
-                        Words.add(w);
+                    moveItem(w);
                 } else {
                     savedCurrWord = -1;   // to change counter in Status bar.
                     // change status learned
                     if (!w.isLearned()) DBAdapter.setLearned(w.getWord_id());
                 }
                 if (!Words.isEmpty()) {
+                    Log.i(TAG_0, "NextWord=" + Words.get(currWord).getRu().toString());
                     tvWord.setText(Words.get(currWord).getRu());
                 }
             } else {
@@ -451,6 +430,17 @@ public class FlipCard extends Activity implements DataExchange {
             }
         }
         showStatusBar(savedCurrWord);
+    }
+
+    private void moveItem(dictEntry w) {
+        int pos = 5 + (int) (Math.random() * 15.0d);
+        wnItem wi = wordsNumber.get(w.getFile_id());
+
+        Log.i(TAG_0, String.format("moveItem pos=%d / %s", pos, wi.toString()));
+        Log.i(TAG_0, w.getRu().toString());
+        int lPos = wi.getTot() - wi.getCur();
+        if (pos > lPos) pos = lPos;
+        Words.add(pos, w);
     }
 
     @Override
@@ -1089,6 +1079,10 @@ public class FlipCard extends Activity implements DataExchange {
         public void setCur(int cur) {
             if ((cur <= tot) && (cur > 0)) this.cur = cur;
         }
+
+        public int getTot() {
+            return tot;
+        }
     }
 
     static class dictEntry implements Parcelable {
@@ -1253,7 +1247,6 @@ public class FlipCard extends Activity implements DataExchange {
 
         @Override
         public boolean onSingleTapUp(MotionEvent e) {
-//            Log.i(TAG_0, "onSingleTapUp - isMarking=" + isMarking);
             if (isMarking) return false;
             switch (tapZone(e)) {
                 case TAP_NEXT:
@@ -1333,28 +1326,28 @@ public class FlipCard extends Activity implements DataExchange {
 
         @Override
         public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-//            Log.i(TAG_0, "onFling velocityX =" + velocityX);
+            Log.i(TAG_0, "onFling velocityX =" + velocityX);
             int distY = (int) Math.abs(e1.getY() - e2.getY());
             int distX = (int) (e1.getX() - e2.getX());
-//            Log.i(TAG_0, "distX =" + distX);
-//            Log.i(TAG_0, "distY =" + distY);
+            Log.i(TAG_0, "distX =" + distX);
+            Log.i(TAG_0, "distY =" + distY);
             if (!isMarking) {
                 if ((distX > MIN_DISTANCE) && (distX > distY)
                         && Math.abs(velocityX) > VELOCITY_THRESHOLD) {
-//                    Log.i(TAG_0, "NextWord");
+                    Log.i(TAG_0, "NextWord");
                     NextWord();
                     return true;
                 } else {
                     distX = -distX;
                     if ((distX > MIN_DISTANCE) && (distX > distY)
                             && Math.abs(velocityX) > VELOCITY_THRESHOLD) {
-//                        Log.i(TAG_0, "flip_card");
+                        Log.i(TAG_0, "flip_card");
                         flip_card();
                         return true;
                     }
                 }
             }
-//            Log.i(TAG_0, "nothing");
+            Log.i(TAG_0, "nothing");
             return false;
         }
     }
