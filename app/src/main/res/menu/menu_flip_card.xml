@@ -2,7 +2,7 @@
     xmlns:tools="http://schemas.android.com/tools" tools:context=".MainActivity">
     <!-- Select words to study -->
     <item android:id="@+id/action_words" android:icon="@drawable/ic_action_storage"
-        android:orderInCategory="100" android:showAsAction="always" />
+        android:orderInCategory="400" android:showAsAction="always" />
     <!-- Read file -->
     <item android:id="@+id/action_open" android:icon="@drawable/ic_action_collection"
         android:orderInCategory="200" android:showAsAction="always" />
@@ -10,7 +10,7 @@
     <item android:id="@+id/action_settings" android:icon="@drawable/ic_action_config"
         android:orderInCategory="300" android:showAsAction="always" />
     <item android:id="@+id/action_tts" android:icon="@drawable/ic_action_volume_on"
-        android:orderInCategory="400" android:showAsAction="always" />
+        android:orderInCategory="100" android:showAsAction="always" />
     <!--
     <item android:id="@+id/action_info" android:icon="@drawable/ic_action_about"
         android:orderInCategory="500" android:showAsAction="always" />

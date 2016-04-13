@@ -44,14 +44,18 @@ import java.util.Locale;
 
 public class FlipCard extends Activity implements DataExchange {
 
+/*
     @Override
     protected void onPause() {
         super.onPause();
-        if (TTS != null) TTS.stop();
+        Log.i(TAG_1, "onPause");
+        if (TTS != null) TTS.stop();  //Interrupts the current utterance
     }
+*/
 
     @Override
     protected void onDestroy() {
+        Log.i(TAG_1, "onDestroy");
         DBAdapter.close();
         if (TTS != null) TTS.shutdown();
         super.onDestroy();
@@ -83,7 +87,9 @@ public class FlipCard extends Activity implements DataExchange {
     private final int CHECK_TTS = 3;
     private MyTTS TTS;
     private boolean isTTSavailable = true;
+    static private final String IS_TTS_AVAILABLE = "IS_TTS_AVAILABLE";
     private boolean isTTSchecked = false;
+    static private final String IS_TTS_CHECKED = "IS_TTS_CHECKED";
     private int TTSmessageNo;
     private boolean isReadingNow = false;
     static private final String IS_SETTING_NOW = "IS_SETTING_NOW";
@@ -91,8 +97,8 @@ public class FlipCard extends Activity implements DataExchange {
     static private final int FILE_ERROR_READING = -1;
     static private final int FILE_ERROR_OPENING = -2;
     static LearnWordDBAdapter DBAdapter;
-    static final String TAG_0 = "Gesture";
-//    static final String TAG_1 = "logTTS";
+//    static final String TAG_0 = "Gesture";
+    static final String TAG_1 = "logTTS";
 //    static final String TAG_2 = "lifeCycle";
 //    static final String TAG_4 = "language";
 
@@ -116,6 +122,8 @@ public class FlipCard extends Activity implements DataExchange {
         wordsNumber = savedInstanceState.getSparseParcelableArray(WORD_NUMBER);
         prevFileId = savedInstanceState.getInt(PREV_FILE_ID);
         Words = savedInstanceState.getParcelableArrayList(WORDS);
+//        isTTSavailable = savedInstanceState.getBoolean(IS_TTS_AVAILABLE);
+//        isTTSchecked = savedInstanceState.getBoolean(IS_TTS_CHECKED);
 
         if (isSettingNow) return;
         if (Words.size() == 0) return;   // TODO Words & myPersist are already initialized ?
@@ -140,6 +148,8 @@ public class FlipCard extends Activity implements DataExchange {
         outState.putInt(FLIPS_COUNTER, flipsCounter);
         outState.putBoolean(IS_SETTING_NOW, isSettingNow);
         outState.putInt(PREV_FILE_ID, prevFileId);
+//        outState.putBoolean(IS_TTS_CHECKED, isTTSchecked);
+//        outState.putBoolean(IS_TTS_AVAILABLE, isTTSavailable);
 
         outState.putSparseParcelableArray(WORD_NUMBER, wordsNumber);
 
@@ -419,7 +429,7 @@ public class FlipCard extends Activity implements DataExchange {
                     if (!w.isLearned()) DBAdapter.setLearned(w.getWord_id());
                 }
                 if (!Words.isEmpty()) {
-                    Log.i(TAG_0, "NextWord=" + Words.get(currWord).getRu().toString());
+//                    Log.i(TAG_0, "NextWord=" + Words.get(currWord).getRu().toString());
                     tvWord.setText(Words.get(currWord).getRu());
                 }
             } else {
@@ -436,8 +446,8 @@ public class FlipCard extends Activity implements DataExchange {
         int pos = 5 + (int) (Math.random() * 15.0d);
         wnItem wi = wordsNumber.get(w.getFile_id());
 
-        Log.i(TAG_0, String.format("moveItem pos=%d / %s", pos, wi.toString()));
-        Log.i(TAG_0, w.getRu().toString());
+//        Log.i(TAG_0, String.format("moveItem pos=%d / %s", pos, wi.toString()));
+//        Log.i(TAG_0, w.getRu().toString());
         int lPos = wi.getTot() - wi.getCur();
         if (pos > lPos) pos = lPos;
         Words.add(pos, w);
@@ -570,7 +580,7 @@ public class FlipCard extends Activity implements DataExchange {
     private void SpeakThis() {
 //        Log.i(TAG_1, "SpeakThis " + System.currentTimeMillis());
         if (isTTSavailable) {
-            TTS.mySpeak(tvWord.getText(), TextToSpeech.QUEUE_FLUSH);
+            TTS.mySpeak(tvWord.getText(), TextToSpeech.QUEUE_ADD);
         } else {
             showMessage();
         }
@@ -1326,28 +1336,28 @@ public class FlipCard extends Activity implements DataExchange {
 
         @Override
         public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-            Log.i(TAG_0, "onFling velocityX =" + velocityX);
+//            Log.i(TAG_0, "onFling velocityX =" + velocityX);
             int distY = (int) Math.abs(e1.getY() - e2.getY());
             int distX = (int) (e1.getX() - e2.getX());
-            Log.i(TAG_0, "distX =" + distX);
-            Log.i(TAG_0, "distY =" + distY);
+//            Log.i(TAG_0, "distX =" + distX);
+//            Log.i(TAG_0, "distY =" + distY);
             if (!isMarking) {
                 if ((distX > MIN_DISTANCE) && (distX > distY)
                         && Math.abs(velocityX) > VELOCITY_THRESHOLD) {
-                    Log.i(TAG_0, "NextWord");
+//                    Log.i(TAG_0, "NextWord");
                     NextWord();
                     return true;
                 } else {
                     distX = -distX;
                     if ((distX > MIN_DISTANCE) && (distX > distY)
                             && Math.abs(velocityX) > VELOCITY_THRESHOLD) {
-                        Log.i(TAG_0, "flip_card");
+//                        Log.i(TAG_0, "flip_card");
                         flip_card();
                         return true;
                     }
                 }
             }
-            Log.i(TAG_0, "nothing");
+//            Log.i(TAG_0, "nothing");
             return false;
         }
     }
