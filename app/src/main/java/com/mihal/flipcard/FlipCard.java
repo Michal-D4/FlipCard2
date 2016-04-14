@@ -44,20 +44,11 @@ import java.util.Locale;
 
 public class FlipCard extends Activity implements DataExchange {
 
-/*
-    @Override
-    protected void onPause() {
-        super.onPause();
-        Log.i(TAG_1, "onPause");
-        if (TTS != null) TTS.stop();  //Interrupts the current utterance
-    }
-*/
-
     @Override
     protected void onDestroy() {
         Log.i(TAG_1, "onDestroy");
         DBAdapter.close();
-        if (TTS != null) TTS.shutdown();
+//        if (TTS != null) TTS.shutdown();
         super.onDestroy();
     }
 
@@ -85,10 +76,9 @@ public class FlipCard extends Activity implements DataExchange {
     private final int PICK_FILE_REQUEST = 1;
     private final int SELECT_WORDS_REQUEST = 2;
     private final int CHECK_TTS = 3;
-    private MyTTS TTS;
+    private static MyTTS TTS;
     private boolean isTTSavailable = true;
     static private final String IS_TTS_AVAILABLE = "IS_TTS_AVAILABLE";
-    private boolean isTTSchecked = false;
     static private final String IS_TTS_CHECKED = "IS_TTS_CHECKED";
     private int TTSmessageNo;
     private boolean isReadingNow = false;
@@ -122,8 +112,7 @@ public class FlipCard extends Activity implements DataExchange {
         wordsNumber = savedInstanceState.getSparseParcelableArray(WORD_NUMBER);
         prevFileId = savedInstanceState.getInt(PREV_FILE_ID);
         Words = savedInstanceState.getParcelableArrayList(WORDS);
-//        isTTSavailable = savedInstanceState.getBoolean(IS_TTS_AVAILABLE);
-//        isTTSchecked = savedInstanceState.getBoolean(IS_TTS_CHECKED);
+        isTTSavailable = savedInstanceState.getBoolean(IS_TTS_AVAILABLE);
 
         if (isSettingNow) return;
         if (Words.size() == 0) return;   // TODO Words & myPersist are already initialized ?
@@ -148,8 +137,7 @@ public class FlipCard extends Activity implements DataExchange {
         outState.putInt(FLIPS_COUNTER, flipsCounter);
         outState.putBoolean(IS_SETTING_NOW, isSettingNow);
         outState.putInt(PREV_FILE_ID, prevFileId);
-//        outState.putBoolean(IS_TTS_CHECKED, isTTSchecked);
-//        outState.putBoolean(IS_TTS_AVAILABLE, isTTSavailable);
+        outState.putBoolean(IS_TTS_AVAILABLE, isTTSavailable);
 
         outState.putSparseParcelableArray(WORD_NUMBER, wordsNumber);
 
@@ -195,7 +183,7 @@ public class FlipCard extends Activity implements DataExchange {
     }
 
     private void checkForTTS() {
-//        Log.i(TAG_1, "checkForTTS " + System.currentTimeMillis());
+        Log.i(TAG_1, "checkForTTS " + System.currentTimeMillis());
         Toast.makeText(this, R.string.start_tts, Toast.LENGTH_SHORT).show();
         Intent checkTTSIntent = new Intent();
         checkTTSIntent.setAction(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA);
@@ -350,7 +338,7 @@ public class FlipCard extends Activity implements DataExchange {
             descr.setText(String.format("%s/%s",
                     DBAdapter.getFileName(newId), DBAdapter.getWordGroupName(newId)));
             String newLang = DBAdapter.getLanguage(newId);
-            if (isTTSchecked) changeTTSLocale(newLang);
+            if (TTS != null) changeTTSLocale(newLang);
             prevFileId = newId;
         } else {
             if (currWord != savedCurrWord) {
@@ -474,7 +462,7 @@ public class FlipCard extends Activity implements DataExchange {
                     }
                     break;
                 case CHECK_TTS:
-//                    Log.i(TAG_1, "onActivityResult " + System.currentTimeMillis());
+                    Log.i(TAG_1, "onActivityResult " + System.currentTimeMillis());
                     if (resultCode == TextToSpeech.Engine.CHECK_VOICE_DATA_PASS) {
                         TextToSpeech.OnInitListener listener = new TextToSpeech.OnInitListener() {
                             @Override
@@ -487,16 +475,15 @@ public class FlipCard extends Activity implements DataExchange {
                             }
                         };
                         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
-                            TTS = new MyTTSbefore21(this, listener);
+                            TTS = new MyTTSbefore21(getApplicationContext(), listener);
                         } else {
-                            TTS = new MyTTS21(this, listener);
+                            TTS = new MyTTS21(getApplicationContext(), listener);
                         }
                         isTTSavailable = true;
                         SpeakThis();
                     } else {
                         TTS_failed(2);
                     }
-                    isTTSchecked = true;
             }
         }
     }
@@ -567,10 +554,10 @@ public class FlipCard extends Activity implements DataExchange {
                 return true;
             }
             if (id == R.id.action_tts) {
-                if (isTTSchecked) {
-                    SpeakThis();
-                } else {
+                if (TTS == null) {
                     checkForTTS();
+                } else {
+                    SpeakThis();
                 }
             }
         }
@@ -578,7 +565,7 @@ public class FlipCard extends Activity implements DataExchange {
     }
 
     private void SpeakThis() {
-//        Log.i(TAG_1, "SpeakThis " + System.currentTimeMillis());
+        Log.i(TAG_1, "SpeakThis " + System.currentTimeMillis());
         if (isTTSavailable) {
             TTS.mySpeak(tvWord.getText(), TextToSpeech.QUEUE_ADD);
         } else {
