@@ -20,7 +20,6 @@ import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.RelativeSizeSpan;
-import android.util.Log;
 import android.util.SparseArray;
 import android.view.ActionMode;
 import android.view.GestureDetector;
@@ -28,7 +27,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.LinearLayout;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -46,17 +45,19 @@ public class FlipCard extends Activity implements DataExchange {
 
     @Override
     protected void onDestroy() {
-        Log.i(TAG_1, "onDestroy");
+//        Log.i(TAG_1, "onDestroy");
         DBAdapter.close();
+        //проблема. Нужно освободить ресурсы : TTS.shutdown()
+        // но при повороте экрана не хочется!!!
 //        if (TTS != null) TTS.shutdown();
         super.onDestroy();
     }
 
-    private Menu menu;
     private ProgressBar pbRead;
     private ArrayList<dictEntry> Words;
     static private final String WORDS = "WORDS";
-    private LinearLayout main;
+    private static ImageView imSpeak;
+    private View vScroll;
     private TextView descr;
     private TextView counts;
     private TextView preview;
@@ -76,10 +77,9 @@ public class FlipCard extends Activity implements DataExchange {
     private final int PICK_FILE_REQUEST = 1;
     private final int SELECT_WORDS_REQUEST = 2;
     private final int CHECK_TTS = 3;
-    private static MyTTS TTS;
+    private static MyTTS TTS = null;
     private boolean isTTSavailable = true;
     static private final String IS_TTS_AVAILABLE = "IS_TTS_AVAILABLE";
-    static private final String IS_TTS_CHECKED = "IS_TTS_CHECKED";
     private int TTSmessageNo;
     private boolean isReadingNow = false;
     static private final String IS_SETTING_NOW = "IS_SETTING_NOW";
@@ -88,7 +88,7 @@ public class FlipCard extends Activity implements DataExchange {
     static private final int FILE_ERROR_OPENING = -2;
     static LearnWordDBAdapter DBAdapter;
 //    static final String TAG_0 = "Gesture";
-    static final String TAG_1 = "logTTS";
+//    static final String TAG_1 = "logTTS";
 //    static final String TAG_2 = "lifeCycle";
 //    static final String TAG_4 = "language";
 
@@ -152,6 +152,26 @@ public class FlipCard extends Activity implements DataExchange {
 
         setContentView(R.layout.activity_flip_card);
 
+        imSpeak = (ImageView) findViewById(R.id.btn_speak);
+        imSpeak.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (TTS == null) {
+                    checkForTTS();
+                } else {
+                    SpeakThis();
+                }
+            }
+        });
+
+        findViewById(R.id.mark_learned).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                DBAdapter.setLearned(Words.get(currWord).getWord_id());
+                NextWord();
+            }
+        });
+
         descr = (TextView) findViewById(R.id.tb_descr);
         counts = (TextView) findViewById(R.id.tb_count);
 
@@ -179,11 +199,11 @@ public class FlipCard extends Activity implements DataExchange {
 
         if (savedInstanceState == null) SetWords();
 
-        main = (LinearLayout) findViewById(R.id.MAIN);
+        vScroll = (View) findViewById(R.id.MAIN);
     }
 
     private void checkForTTS() {
-        Log.i(TAG_1, "checkForTTS " + System.currentTimeMillis());
+//        Log.i(TAG_1, "checkForTTS " + System.currentTimeMillis());
         Toast.makeText(this, R.string.start_tts, Toast.LENGTH_SHORT).show();
         Intent checkTTSIntent = new Intent();
         checkTTSIntent.setAction(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA);
@@ -462,7 +482,7 @@ public class FlipCard extends Activity implements DataExchange {
                     }
                     break;
                 case CHECK_TTS:
-                    Log.i(TAG_1, "onActivityResult " + System.currentTimeMillis());
+//                    Log.i(TAG_1, "onActivityResult " + System.currentTimeMillis());
                     if (resultCode == TextToSpeech.Engine.CHECK_VOICE_DATA_PASS) {
                         TextToSpeech.OnInitListener listener = new TextToSpeech.OnInitListener() {
                             @Override
@@ -500,7 +520,6 @@ public class FlipCard extends Activity implements DataExchange {
         // Inflate the menu; this adds items to the action bar if it is present.
         //super.onCreateOptionsMenu(menu);
         getMenuInflater().inflate(R.menu.menu_flip_card, menu);
-        this.menu = menu;
         return true;
     }
 
@@ -513,7 +532,7 @@ public class FlipCard extends Activity implements DataExchange {
         } else {
             ico = getResources().getDrawable(id, null);
         }
-        menu.findItem(R.id.action_tts).setIcon(ico);
+        imSpeak.setImageDrawable(ico);
     }
 
     @Override
@@ -553,19 +572,12 @@ public class FlipCard extends Activity implements DataExchange {
                 startActivityForResult(setWords, SELECT_WORDS_REQUEST);
                 return true;
             }
-            if (id == R.id.action_tts) {
-                if (TTS == null) {
-                    checkForTTS();
-                } else {
-                    SpeakThis();
-                }
-            }
         }
         return super.onOptionsItemSelected(item);
     }
 
     private void SpeakThis() {
-        Log.i(TAG_1, "SpeakThis " + System.currentTimeMillis());
+//        Log.i(TAG_1, "SpeakThis " + System.currentTimeMillis());
         if (isTTSavailable) {
             TTS.mySpeak(tvWord.getText(), TextToSpeech.QUEUE_ADD);
         } else {
@@ -1236,11 +1248,15 @@ public class FlipCard extends Activity implements DataExchange {
         private static final int VELOCITY_THRESHOLD = 60;
         private static final int TAP_NEXT = 1;
         private static final int TAP_PREV_FLIP = 2;
+        private boolean isFirstGesture;
+        private int TOP_OF_TAP_ZONE;
+        private int BOTTOM_OF_TAP_ZONE;
         private int halfScrWidth;
         private int midY;
 
-//        public FlipGestureDetector() {
-//        }
+        public FlipGestureDetector() {
+            isFirstGesture = true;
+        }
 
         @Override
         public boolean onSingleTapUp(MotionEvent e) {
@@ -1253,25 +1269,25 @@ public class FlipCard extends Activity implements DataExchange {
                     flip_card();
                     return true;
                 default:
-//                    Log.i(TAG_0, "onSingleTapUp - NO_ACTION");
                     return false;
             }
         }
 
         private boolean isWorkingZone(int Y) {
-//            Log.i(TAG_0, "isWorkingZone Y=" + Y);
-            int TOP_OF_TAP_ZONE;
-            int BOTTOM_OF_TAP_ZONE;
             int[] loc = new int[2];
-            main.getLocationOnScreen(loc);
-            int h = main.getHeight();
-            halfScrWidth = main.getWidth() / 2;
-            TOP_OF_TAP_ZONE = loc[1];
-            BOTTOM_OF_TAP_ZONE = TOP_OF_TAP_ZONE + h;
-//            Log.i(TAG_0, "loc[1]=" + loc[1] + " height=" + h +
-//                    " TOP_OF_TAP_ZONE=" + TOP_OF_TAP_ZONE +
-//                    " BOTTOM_OF_TAP_ZONE=" + BOTTOM_OF_TAP_ZONE +
-//                    " halfScrWidth=" + halfScrWidth);
+            if (isFirstGesture) {
+                vScroll.getLocationOnScreen(loc);
+                halfScrWidth = vScroll.getWidth() / 2;
+                TOP_OF_TAP_ZONE = loc[1];
+                imSpeak.getLocationOnScreen(loc);
+                BOTTOM_OF_TAP_ZONE = loc[1];
+                isFirstGesture = false;
+//                Log.i(TAG_0,
+//                        " TOP_OF_TAP_ZONE=" + TOP_OF_TAP_ZONE +
+//                                " BOTTOM_OF_TAP_ZONE=" + BOTTOM_OF_TAP_ZONE +
+//                                " halfScrWidth=" + halfScrWidth);
+            }
+
 
             if (tvTranscript.getVisibility() == View.VISIBLE &&
                     !("".equals(tvTranscript.getText().toString()))) {
@@ -1285,20 +1301,14 @@ public class FlipCard extends Activity implements DataExchange {
                 int BOTTOM_TRANSCRIPTION_FIELD;
                 TOP_TRANSCRIPTION_FIELD = locS[1];
                 BOTTOM_TRANSCRIPTION_FIELD = TOP_TRANSCRIPTION_FIELD + viewHeight;
-//                Log.i(TAG_0, "TOP_TRANSCRIPTION_FIELD=" + TOP_TRANSCRIPTION_FIELD +
-//                        " BOTTOM_TRANSCRIPTION_FIELD=" + BOTTOM_TRANSCRIPTION_FIELD);
 
                 if ((Y > TOP_OF_TAP_ZONE && Y < BOTTOM_OF_TAP_ZONE) &&
                         (Y < TOP_TRANSCRIPTION_FIELD || Y > BOTTOM_TRANSCRIPTION_FIELD)) {
-//                    Log.i(TAG_0, "return true");
                     return true;
                 }
             } else if (Y > TOP_OF_TAP_ZONE && Y < BOTTOM_OF_TAP_ZONE) {
-//                Log.i(TAG_0, "return true");
                 return true;
             }
-
-//            Log.i(TAG_0, "return false");
             return false;
         }
 
@@ -1312,10 +1322,8 @@ public class FlipCard extends Activity implements DataExchange {
                 if ((X < halfScrWidth && Y > midY) ||
                         (X > halfScrWidth && Y < midY)) {
                     rez = TAP_NEXT;
-//                    Log.i(TAG_0, "tapZone is TAP_NEXT = " + rez);
                 } else {
                     rez = TAP_PREV_FLIP;
-//                    Log.i(TAG_0, "tapZone is TAP_PREV_FLIP = " + rez);
                 }
             }
             return rez;
@@ -1323,28 +1331,22 @@ public class FlipCard extends Activity implements DataExchange {
 
         @Override
         public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-//            Log.i(TAG_0, "onFling velocityX =" + velocityX);
             int distY = (int) Math.abs(e1.getY() - e2.getY());
             int distX = (int) (e1.getX() - e2.getX());
-//            Log.i(TAG_0, "distX =" + distX);
-//            Log.i(TAG_0, "distY =" + distY);
             if (!isMarking) {
                 if ((distX > MIN_DISTANCE) && (distX > distY)
                         && Math.abs(velocityX) > VELOCITY_THRESHOLD) {
-//                    Log.i(TAG_0, "NextWord");
                     NextWord();
                     return true;
                 } else {
                     distX = -distX;
                     if ((distX > MIN_DISTANCE) && (distX > distY)
                             && Math.abs(velocityX) > VELOCITY_THRESHOLD) {
-//                        Log.i(TAG_0, "flip_card");
                         flip_card();
                         return true;
                     }
                 }
             }
-//            Log.i(TAG_0, "nothing");
             return false;
         }
     }
