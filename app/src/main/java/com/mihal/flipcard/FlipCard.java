@@ -156,11 +156,12 @@ public class FlipCard extends Activity implements DataExchange {
         imSpeak.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (TTS == null) {
-                    checkForTTS();
-                } else {
+//                TTS initialization in this onCraete
+//                if (TTS == null) {
+//                    checkForTTS();
+//                } else {
                     SpeakThis();
-                }
+//                }
             }
         });
 
@@ -199,7 +200,8 @@ public class FlipCard extends Activity implements DataExchange {
 
         if (savedInstanceState == null) SetWords();
 
-        vScroll = (View) findViewById(R.id.MAIN);
+        vScroll = findViewById(R.id.MAIN);
+        checkForTTS();
     }
 
     private void checkForTTS() {

@@ -26,7 +26,7 @@
                 android:id="@+id/preview"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center_vertical"
+                android:paddingTop="@dimen/activity_margin_4"
                 android:textAppearance="?android:attr/textAppearanceLarge"
                 android:textColor="@android:color/holo_purple"
                 android:visibility="visible" />
@@ -35,7 +35,6 @@
                 android:id="@+id/tvWord"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center_vertical"
                 android:paddingTop="@dimen/activity_margin_4"
                 android:textAppearance="?android:attr/textAppearanceLarge"
                 android:textColor="@android:color/black" />
@@ -44,7 +43,6 @@
                 android:id="@+id/tvTrscr"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center_vertical"
                 android:paddingTop="@dimen/activity_margin_4"
                 android:textAppearance="?android:attr/textAppearanceLarge"
                 android:textColor="@android:color/holo_green_dark"
