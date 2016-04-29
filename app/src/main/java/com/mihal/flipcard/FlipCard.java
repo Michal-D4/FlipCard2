@@ -20,6 +20,7 @@ import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.RelativeSizeSpan;
+import android.util.Log;
 import android.util.SparseArray;
 import android.view.ActionMode;
 import android.view.GestureDetector;
@@ -66,7 +67,7 @@ public class FlipCard extends Activity implements DataExchange {
     private GestureDetector detector;
     private int flipsCounter = 0;
     static private final String FLIPS_COUNTER = "FLIPS_COUNTER";
-    private int prevFileId;
+    private int prevFileId = 0;
     static private final String PREV_FILE_ID = "PREV_FILE_ID";
     private SparseArray<wnItem> wordsNumber;
     static private final String WORD_NUMBER = "WORD_NUMBER";
@@ -90,7 +91,7 @@ public class FlipCard extends Activity implements DataExchange {
 //    static final String TAG_0 = "Gesture";
 //    static final String TAG_1 = "logTTS";
 //    static final String TAG_2 = "lifeCycle";
-//    static final String TAG_4 = "language";
+    static final String TAG_4 = "language";
 
     private boolean isMarking = false;
 
@@ -357,9 +358,9 @@ public class FlipCard extends Activity implements DataExchange {
         int newId = Words.get(currWord).getFile_id();
         wnItem curItem = wordsNumber.get(newId);
         if ((prevFileId != newId) || "".equals(descr.getText())) {
-            descr.setText(String.format("%s/%s",
-                    DBAdapter.getFileName(newId), DBAdapter.getWordGroupName(newId)));
             String newLang = DBAdapter.getLanguage(newId);
+            descr.setText(String.format("%s | %s/%s", newLang,
+                    DBAdapter.getFileName(newId), DBAdapter.getWordGroupName(newId)));
             if (TTS != null) changeTTSLocale(newLang);
             prevFileId = newId;
         } else {
@@ -373,17 +374,17 @@ public class FlipCard extends Activity implements DataExchange {
     }
 
     private void changeTTSLocale(String newLang) {
-//        Log.i(TAG_1, "changeTTSLocale newLang=" + newLang +
-//                " TTS is null =" + (TTS == null));
+        Log.i(TAG_4, "changeTTSLocale newLang=" + newLang);
         if (TTS == null) return;
         if (newLang == null || newLang.length() == 0) return;
 
         Locale locale = new Locale(newLang);
-//        Log.i(TAG_1, "TTS.getCurrentLanguage=" + TTS.getCurrentLanguage() +
-//                " new one=" + locale.getDisplayLanguage());
+        Log.i(TAG_4, "TTS Current Language=" + TTS.getCurrentLanguage() +
+                " <---> new Language=" + locale.getDisplayLanguage());
         if (TTS.getCurrentLanguage().equals(locale.getDisplayLanguage())) return;
 
         TTSmessageNo = TTS.setLanguage(locale);
+        Log.i(TAG_4, " setLanguage ret.code = " + TTSmessageNo) ;
         // if availability of TTS changed ?
         if (isTTSavailable != (TTSmessageNo >= TextToSpeech.LANG_AVAILABLE)) {
             isTTSavailable = !isTTSavailable;
@@ -579,7 +580,6 @@ public class FlipCard extends Activity implements DataExchange {
     }
 
     private void SpeakThis() {
-//        Log.i(TAG_1, "SpeakThis " + System.currentTimeMillis());
         if (isTTSavailable) {
             TTS.mySpeak(tvWord.getText(), TextToSpeech.QUEUE_ADD);
         } else {
@@ -588,7 +588,6 @@ public class FlipCard extends Activity implements DataExchange {
     }
 
     private void showMessage() {
-//        Log.i(TAG_1, "showMessage " + System.currentTimeMillis());
         String[] messages = getResources().getStringArray(R.array.tts_messages);
         Toast.makeText(this, messages[TTSmessageNo + 2], Toast.LENGTH_SHORT).show();
     }
@@ -674,7 +673,7 @@ public class FlipCard extends Activity implements DataExchange {
         }
 
         private int readFile(String path) {
-//            Log.i(TAG_4, "readFile - " + path);
+            Log.i(TAG_4, "readFile - " + path);
             InputStreamReader is;
             try {
                 is = new InputStreamReader(new FileInputStream(path), "UTF8");
@@ -719,7 +718,7 @@ public class FlipCard extends Activity implements DataExchange {
                         }
                         numOfWords = 0;
                         int iL = word.indexOf("L:", commentSign.length());
-//                        Log.i(TAG_4, "if language found? " + iL);
+                        Log.i(TAG_4, "if language found? " + iL);
                         int ii;
                         if (iL >= 0) {
                             ii = word.indexOf(" ", iL);
