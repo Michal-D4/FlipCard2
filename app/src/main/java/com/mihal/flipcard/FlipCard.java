@@ -157,7 +157,7 @@ public class FlipCard extends Activity implements DataExchange {
         imSpeak.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                TTS initialization in this onCraete
+//                TTS initialization in this onCreate
 //                if (TTS == null) {
 //                    checkForTTS();
 //                } else {
@@ -181,7 +181,7 @@ public class FlipCard extends Activity implements DataExchange {
         tvWord = (TextView) findViewById(R.id.tvWord);
         tvTranscript = (TextView) findViewById(R.id.tvTrscr);
 
-        setCallback();  // set CustomSelectionActionModeCallback to tvTranscript
+        setCallback();  // set CustomSelectionActionModeCallback to tvTranscript - popup menu
 
         pbRead = (ProgressBar) findViewById(R.id.pb_read);
 
@@ -207,7 +207,6 @@ public class FlipCard extends Activity implements DataExchange {
 
     private void checkForTTS() {
 //        Log.i(TAG_1, "checkForTTS " + System.currentTimeMillis());
-        Toast.makeText(this, R.string.start_tts, Toast.LENGTH_SHORT).show();
         Intent checkTTSIntent = new Intent();
         checkTTSIntent.setAction(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA);
         startActivityForResult(checkTTSIntent, CHECK_TTS);
@@ -503,7 +502,6 @@ public class FlipCard extends Activity implements DataExchange {
                             TTS = new MyTTS21(getApplicationContext(), listener);
                         }
                         isTTSavailable = true;
-                        SpeakThis();
                     } else {
                         TTS_failed(2);
                     }
@@ -614,6 +612,8 @@ public class FlipCard extends Activity implements DataExchange {
     private class ReadFile extends AsyncTask<String, Void, Integer> {
         private final ArrayList<dictEntry> mWords;
         private final MyPersist persist;
+        private String lang = "";
+        private String fileName;
 
         @Override
         protected void onPreExecute() {
@@ -682,8 +682,7 @@ public class FlipCard extends Activity implements DataExchange {
                 return FILE_ERROR_OPENING;
             }
 
-            String[] params = new String[3];
-            params[0] = path.substring(path.lastIndexOf(File.separator) + 1);
+            fileName = path.substring(path.lastIndexOf(File.separator) + 1);
             BufferedReader in;
             String[] ww;
             String commentSign = getString(R.string.comment_sign);
@@ -702,46 +701,32 @@ public class FlipCard extends Activity implements DataExchange {
                 word = in.readLine();
                 if (word != null) {
                     sDelimiter = "\uFEFF";
-//                    Log.i(TAG_4, "Starts with BOM? " + sDelimiter + " " + sDelimiter.length());
                     if (word.startsWith(sDelimiter)) {
-//                        Log.i(TAG_4, "Starts with BOM");
                         word = word.substring(sDelimiter.length());
                     }
                 }
                 sDelimiter = persist.getDelimiter();
                 while (word != null) {
-//                    Log.i(TAG_4, word);
                     numLines++;
-                    if (word.startsWith(commentSign)) {
+                    ww = word.split(sDelimiter);
+                    if (ww[0].startsWith(commentSign)) {
                         if (fileID > 0) {
                             checkNumOfWords(numOfWords, fileID);
                         }
                         numOfWords = 0;
-                        int iL = word.indexOf("L:", commentSign.length());
-                        Log.i(TAG_4, "if language found? " + iL);
-                        int ii;
-                        if (iL >= 0) {
-                            ii = word.indexOf(" ", iL);
-                            if (ii > 0) params[2] = word.substring(iL + 2, ii);
-                            else {
-                                params[2] = "";
-                                ii = iL + 2;
-                            }
-                        } else {
-                            ii = commentSign.length();
-                            params[2] = "";
-                        }
-                        params[1] = word.substring(ii).trim();
-                        fileID = DBAdapter.addFile(params);
+
+                        ww[0] = fileName;
+                        fileID = processCommentRecord(ww);
+
                         if (fileID > 0) DBAdapter.setSelection(fileID, true);
-                    } else {
+                    } else {   // нет комментария - сохраняем только имя файла params[0] и
+                               // получаем fileID - без него никак !!!
                         if (fileID == 0) {
-                            params[1] = "";
-                            params[2] = "";
-                            fileID = DBAdapter.addFile(params);
+                            fileID = DBAdapter.addFile(new String[] {fileName, "", ""});
+
                             DBAdapter.setSelection(fileID, true);
                         }
-                        ww = word.split(sDelimiter);
+
                         if (ww.length > 1) {
                             mWords.add(new dictEntry(ww, fileID));
                             numOfWords++;
@@ -768,6 +753,23 @@ public class FlipCard extends Activity implements DataExchange {
             }
             persist.setPath(path.substring(0, path.lastIndexOf(File.separator)));
             return mWords.size();
+        }
+
+        private int processCommentRecord(String[] ww) {
+            int ii;
+            String[] params = new String[3];
+            params[0] = fileName;
+            params[2] = lang;
+            switch (ww.length) {
+                case 2:
+                    params[1] = ww[1];
+                    break;
+                case 3:
+                    params[1] = ww[2];
+                    lang = params[2] = ww[1].trim();
+            }
+            Log.i(TAG_4, " language  " + params[2]);
+            return DBAdapter.addFile(params);
         }
     }
 
@@ -869,7 +871,7 @@ public class FlipCard extends Activity implements DataExchange {
 
         // params = {fileName, description, language}
         public int addFile(String[] params) {
-//            Log.i(TAG_4, "params=" + params[0] + "; " + params[1] + "; " + params[2]);
+//            Log.i(TAG_4, "addFile >> params=" + params[0] + "; " + params[1] + "; " + params[2]);
             ContentValues val = new ContentValues();
             val.put(FILE_NAME, params[0]);
             val.put(DESCRIPTION, params[1]);

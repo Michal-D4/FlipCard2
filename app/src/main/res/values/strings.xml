@@ -30,9 +30,8 @@
     <string name="sel_words">%d words selected for studying</string>
     <string name="del_everything">All words are deleted</string>
     <string name="mark_menu">mark</string>
-    <string name="menu_cancel">cancel</string>
+    <string name="menu_cancel">Cancel</string>
     <string name="comment_sign" translatable="false">##</string>
-    <string name="start_tts">First start of TTS. It may take time.</string>
     <string-array name="tts_messages">
         <item>Language is not supported.</item>
         <item>Language data is missing.</item>
