@@ -4,7 +4,8 @@ local.properties
 .idea/
 /.idea/libraries
 build/
-.gradle/
+.gradle/*
+gradle/*
 #*.bat
 #*.imp
 #**/gradle.xml
