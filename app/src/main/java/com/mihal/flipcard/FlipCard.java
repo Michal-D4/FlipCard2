@@ -55,7 +55,7 @@ public class FlipCard extends Activity implements DataExchange {
     private final int SELECT_WORDS_REQUEST = 2;
     private final int CHECK_TTS_REQUEST = 3;
 
-    private static ImageView imSpeak;
+    private ImageView imSpeak;
     private View vScroll;
     private TextView descr;
     private TextView counts;
@@ -578,7 +578,7 @@ public class FlipCard extends Activity implements DataExchange {
     }
 
     @Override
-    public void receivePersist(MyPersist myPersist) {
+    public void setPersist(MyPersist myPersist) {
         DBAdapter.setMyPersist(myPersist);
         getPersistence(myPersist);  // to change visibility if necessary
         showStatusBar(currWord);
@@ -586,7 +586,7 @@ public class FlipCard extends Activity implements DataExchange {
     }
 
     @Override
-    public MyPersist sendPersist() {
+    public MyPersist getPersist() {
         return DBAdapter.getMyPersist();
     }
 
@@ -775,7 +775,7 @@ public class FlipCard extends Activity implements DataExchange {
         private int halfScrWidth;
         private int midY;
 
-        public FlipGestureDetector() {
+        FlipGestureDetector() {
             isFirstGesture = true;
         }
 
