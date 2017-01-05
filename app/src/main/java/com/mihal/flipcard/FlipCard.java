@@ -707,7 +707,7 @@ public class FlipCard extends Activity implements DataExchange {
                         numOfWords = 0;
 
                         ww[0] = fileName;
-                        fileID = processCommentRecord(ww);
+                        fileID = processHeaderRecord(ww);
 
                         if (fileID > 0) DBAdapter.setSelection(fileID, true);
                     } else {   // нет комментария - сохраняем только имя файла params[0] и
@@ -746,7 +746,7 @@ public class FlipCard extends Activity implements DataExchange {
             return mWords.size();
         }
 
-        private int processCommentRecord(String[] ww) {
+        private int processHeaderRecord(String[] ww) {
             int ii;
             String[] params = new String[3];
             params[0] = fileName;
