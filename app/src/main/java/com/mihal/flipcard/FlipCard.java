@@ -44,9 +44,18 @@ public class FlipCard extends Activity implements DataExchange {
         super.onDestroy();
     }
 
-    private ProgressBar pbRead;
-    private ArrayList<dictEntry> Words;
     static private final String WORDS = "WORDS";
+    static private final String FLIPS_COUNTER = "FLIPS_COUNTER";
+    static private final String PREV_FILE_ID = "PREV_FILE_ID";
+    static private final String WORD_NUMBER = "WORD_NUMBER";
+    static private final String CURR_WORD = "CURR_WORD";
+    static private final String IS_TTS_AVAILABLE = "IS_TTS_AVAILABLE";
+    static private final String IS_SETTING_NOW = "IS_SETTING_NOW";
+    private final int PICK_FILE_REQUEST = 1;
+    private final int SELECT_WORDS_REQUEST = 2;
+    private final int CHECK_TTS_REQUEST = 3;
+
+    private ProgressBar pbRead;
     private static ImageView imSpeak;
     private View vScroll;
     private TextView descr;
@@ -54,26 +63,21 @@ public class FlipCard extends Activity implements DataExchange {
     private TextView preview;
     private TextView tvWord;
     private TextView tvTranscript;
+
     private GestureDetector detector;
-    private int flipsCounter = 0;
-    static private final String FLIPS_COUNTER = "FLIPS_COUNTER";
-    private int prevFileId = 0;
-    static private final String PREV_FILE_ID = "PREV_FILE_ID";
-    private SparseArray<wnItem> wordsNumber;
-    static private final String WORD_NUMBER = "WORD_NUMBER";
-    private int currWord = 0;
-    static private final String CURR_WORD = "CURR_WORD";
-    private boolean isSettingNow = false;
     private MyPersist myPersist;
-    private final int PICK_FILE_REQUEST = 1;
-    private final int SELECT_WORDS_REQUEST = 2;
-    private final int CHECK_TTS = 3;
+    private ArrayList<dictEntry> Words;
+    private SparseArray<wnItem> wordsNumber;
     private static MyTTS TTS = null;
-    private boolean isTTSavailable = true;
-    static private final String IS_TTS_AVAILABLE = "IS_TTS_AVAILABLE";
+
+    private int flipsCounter = 0;
+    private int prevFileId = 0;
+    private int currWord = 0;
     private int TTSmessageNo;
+    private boolean isSettingNow = false;
+    private boolean isTTSavailable = true;
     private boolean isReadingNow = false;
-    static private final String IS_SETTING_NOW = "IS_SETTING_NOW";
+    private boolean isMarking = false;
 
     static LearnWordDBAdapter DBAdapter;
 //    static final String TAG_0 = "Gesture";
@@ -81,7 +85,6 @@ public class FlipCard extends Activity implements DataExchange {
 //    static final String TAG_2 = "lifeCycle";
     static final String TAG_4 = "language";
 
-    private boolean isMarking = false;
 
     @Override
     protected void onResume() {
@@ -197,7 +200,7 @@ public class FlipCard extends Activity implements DataExchange {
 //        Log.i(TAG_1, "checkForTTS " + System.currentTimeMillis());
         Intent checkTTSIntent = new Intent();
         checkTTSIntent.setAction(TextToSpeech.Engine.ACTION_CHECK_TTS_DATA);
-        startActivityForResult(checkTTSIntent, CHECK_TTS);
+        startActivityForResult(checkTTSIntent, CHECK_TTS_REQUEST);
     }
 
     private void setCallback() {
@@ -471,7 +474,7 @@ public class FlipCard extends Activity implements DataExchange {
                                 Words.size()), Toast.LENGTH_SHORT).show();
                     }
                     break;
-                case CHECK_TTS:
+                case CHECK_TTS_REQUEST:
 //                    Log.i(TAG_1, "onActivityResult " + System.currentTimeMillis());
                     if (resultCode == TextToSpeech.Engine.CHECK_VOICE_DATA_PASS) {
                         TextToSpeech.OnInitListener listener = new TextToSpeech.OnInitListener() {
