@@ -55,7 +55,6 @@ public class FlipCard extends Activity implements DataExchange {
     private final int SELECT_WORDS_REQUEST = 2;
     private final int CHECK_TTS_REQUEST = 3;
 
-    private ProgressBar pbRead;
     private static ImageView imSpeak;
     private View vScroll;
     private TextView descr;
@@ -64,6 +63,7 @@ public class FlipCard extends Activity implements DataExchange {
     private TextView tvWord;
     private TextView tvTranscript;
 
+    static LearnWordDBAdapter DBAdapter;
     private GestureDetector detector;
     private MyPersist myPersist;
     private ArrayList<dictEntry> Words;
@@ -79,7 +79,6 @@ public class FlipCard extends Activity implements DataExchange {
     private boolean isReadingNow = false;
     private boolean isMarking = false;
 
-    static LearnWordDBAdapter DBAdapter;
 //    static final String TAG_0 = "Gesture";
 //    static final String TAG_1 = "logTTS";
 //    static final String TAG_2 = "lifeCycle";
@@ -173,9 +172,6 @@ public class FlipCard extends Activity implements DataExchange {
         tvTranscript = (TextView) findViewById(R.id.tvTrscr);
 
         setCallback();  // set CustomSelectionActionModeCallback to tvTranscript - popup menu
-
-        pbRead = (ProgressBar) findViewById(R.id.pb_read);
-
 
         DBAdapter = new LearnWordDBAdapter(this);
 
@@ -607,6 +603,7 @@ public class FlipCard extends Activity implements DataExchange {
         private final MyPersist persist;
         private String lang = "";
         private String fileName;
+        private ProgressBar pbRead;
 
         @Override
         protected void onPreExecute() {
@@ -617,6 +614,7 @@ public class FlipCard extends Activity implements DataExchange {
         private ReadFile() {
             this.mWords = Words;
             this.persist = myPersist;
+            pbRead = (ProgressBar) findViewById(R.id.pb_read);
         }
 
         @Override
