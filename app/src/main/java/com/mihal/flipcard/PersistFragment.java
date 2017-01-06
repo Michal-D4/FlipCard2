@@ -66,22 +66,7 @@ public class PersistFragment extends Fragment  {
         return inflater.inflate(R.layout.persist_fragment, container, false);
     }
 
-/* Added in API 23
-    This method is moved to MyPersist23 class
-    @Override
-    public void onAttach(Context context) {
-        Log.i(TAG_2,"onAttach API 23");
-        super.onAttach(context);
-        try {
-            mCallback = (DataExchange) context;
-        } catch (ClassCastException e) {
-            throw new ClassCastException(context.toString()
-                    + " must implement PersistExchange");
-        }
-    }
-*/
-
-/* Deprecated in API 23 */
+    /* Deprecated in API 23 */
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);

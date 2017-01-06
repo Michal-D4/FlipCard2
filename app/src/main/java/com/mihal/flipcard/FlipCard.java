@@ -66,7 +66,7 @@ public class FlipCard extends Activity implements DataExchange {
     static LearnWordDBAdapter DBAdapter;
     private GestureDetector detector;
     private MyPersist myPersist;
-    private ArrayList<dictEntry> Words;
+    private ArrayList<dictEntry> Words;   // TODO - move to separate class
     private SparseArray<wnItem> wordsNumber;
     private static MyTTS TTS = null;
 
@@ -106,7 +106,7 @@ public class FlipCard extends Activity implements DataExchange {
         isTTSavailable = savedInstanceState.getBoolean(IS_TTS_AVAILABLE);
 
         if (isSettingNow) return;
-        if (Words.size() == 0) return;   // TODO Words & myPersist are already initialized ?
+        if (Words.size() == 0) return;   // TODO Words & myPersist are already initialized ? onCreate already done ?
         dictEntry tmp = Words.get(currWord);
         if (myPersist.isPreview()) {
             preview.setText(tmp.getRu());
@@ -578,7 +578,7 @@ public class FlipCard extends Activity implements DataExchange {
     }
 
     @Override
-    public void setPersist(MyPersist myPersist) {
+    public void setPersist(MyPersist myPersist) {       // TODO unused code
         DBAdapter.setMyPersist(myPersist);
         getPersistence(myPersist);  // to change visibility if necessary
         showStatusBar(currWord);
@@ -747,7 +747,6 @@ public class FlipCard extends Activity implements DataExchange {
         }
 
         private int processHeaderRecord(String[] ww) {
-            int ii;
             String[] params = new String[3];
             params[0] = fileName;
             params[2] = lang;
