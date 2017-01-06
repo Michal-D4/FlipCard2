@@ -578,7 +578,7 @@ public class FlipCard extends Activity implements DataExchange {
     }
 
     @Override
-    public void setPersist(MyPersist myPersist) {       // TODO unused code
+    public void setPersist(MyPersist myPersist) {       // used from PersistFragment
         DBAdapter.setMyPersist(myPersist);
         getPersistence(myPersist);  // to change visibility if necessary
         showStatusBar(currWord);
