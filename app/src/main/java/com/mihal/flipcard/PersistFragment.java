@@ -1,7 +1,7 @@
 package com.mihal.flipcard;
 
 import android.app.Activity;
-import android.app.Fragment;
+import android.support.v4.app.Fragment;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -74,7 +74,7 @@ public class PersistFragment extends Fragment  {
             mCallback = (DataExchange) activity;
         } catch (ClassCastException e) {
             throw new ClassCastException(activity.toString()
-                    + " must implement PersistExchange");
+                    + " must implement DataExchange");
         }
     }
 
