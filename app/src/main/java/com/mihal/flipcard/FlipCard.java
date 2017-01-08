@@ -1,6 +1,5 @@
 package com.mihal.flipcard;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
@@ -10,6 +9,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
+import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.util.SparseArray;
 import android.view.ActionMode;
@@ -32,7 +32,7 @@ import java.util.ArrayList;
 import java.util.Locale;
 
 
-public class FlipCard extends Activity implements DataExchange {
+public class FlipCard extends FragmentActivity implements DataExchange {
 
     @Override
     protected void onDestroy() {
@@ -533,17 +533,10 @@ public class FlipCard extends Activity implements DataExchange {
 
             if (id == R.id.action_settings) {
                 isSettingNow = true;
-                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-                    getFragmentManager().beginTransaction()
+                getSupportFragmentManager().beginTransaction()
                             .addToBackStack(this.getLocalClassName())
                             .replace(android.R.id.content, new PersistFragment())
                             .commit();
-                } else {
-                    getFragmentManager().beginTransaction()
-                            .addToBackStack(this.getLocalClassName())
-                            .replace(android.R.id.content, new MyPersist23())
-                            .commit();
-                }
                 return true;
             }
             if (id == R.id.action_open) {
