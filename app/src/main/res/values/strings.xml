@@ -14,14 +14,12 @@
     <string name="no_words">No word was loaded</string>
     <string name="alert_delete">Selected items will be deleted</string>
     <string name="nothing_selected">Nothing is chosen to study</string>
-    <string name="input_hint">Enter file name</string>
     <string name="q_overwrite">File exist, overwrite?</string>
     <string name="show_learned">show learned words</string>
     <string name="preview_summary">preview mode</string>
     <string name="tabs">tabs</string>
     <string name="other_symbol">other symbol</string>
     <string name="sep_head">Separator of fields in the input file:</string>
-    <string name="use_buttons">use buttons to card scrolling</string>
     <string name="error_reading">incorrect delimiter or file format</string>
     <string name="is_reading">File is still reading</string>
     <string name="first_word">It is first word!</string>

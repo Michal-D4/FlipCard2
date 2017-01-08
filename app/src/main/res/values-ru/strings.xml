@@ -10,13 +10,11 @@
     <string name="no_words">Слова не загружены</string>
     <string name="alert_delete">Выбранные пункты будут удалены</string>
     <string name="nothing_selected">Ничего не выбрано для изучения</string>
-    <string name="input_hint">Введите имя файла</string>
     <string name="q_overwrite">Файл существует, переписать?</string>
     <string name="preview_summary">Режим просмотра</string>
     <string name="show_learned">Показывать выученные слова</string>
     <string name="other_symbol">другой символ</string>
     <string name="sep_head">Разделитель полей в строках входного файла</string>
-    <string name="use_buttons">использовать кнопки для листания карт</string>
     <string name="tabs">табуляция</string>
     <string name="error_reading">неверный разделитель полей или формат файла</string>
     <string name="words_no">%d слов прочитано</string>
